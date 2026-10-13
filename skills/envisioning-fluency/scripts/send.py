@@ -45,13 +45,57 @@ MARK = {"fluent": "f", "growing": "g", "rare": "r"}
 e = lambda s: html.escape(str(s or ""), quote=True)
 
 
+def leave_out(analysis, stats, out):
+    """Take out what the person kept back in the report: whole projects (their
+    entries, lines, references and what was built there) and single cards,
+    named "section:index" as the page numbers them."""
+    out = out or {}
+    projects = {str(p) for p in out.get("projects") or []}
+    cards = {str(c) for c in out.get("entries") or []}
+    if not projects and not cards:
+        return analysis, stats
+
+    def gone(x):
+        if not isinstance(x, dict):
+            return False
+        built = x.get("built") if isinstance(x.get("built"), dict) else {}
+        return x.get("where") in projects or built.get("where") in projects
+
+    a = json.loads(json.dumps(analysis))
+    secs = a.get("sections") or {}
+    for k, items in list(secs.items()):
+        secs[k] = [x for i, x in enumerate(items or []) if f"{k}:{i}" not in cards and not gone(x)]
+    a["built"] = [x for i, x in enumerate(a.get("built") or []) if f"built:{i}" not in cards and not gone(x)]
+    for key in ("refusals", "names", "references"):
+        a[key] = [x for x in a.get(key) or [] if not gone(x)]
+    # A line kept from another project can still name one that was switched
+    # off ("same as the triage board"): the name goes, wherever it is.
+    if projects:
+        rx = re.compile(r"\b(" + "|".join(re.escape(p) for p in sorted(projects, key=len, reverse=True)) + r")\b", re.I)
+
+        def scrub(v):
+            if isinstance(v, str):
+                return rx.sub("[left out]", v)
+            if isinstance(v, list):
+                return [scrub(x) for x in v]
+            if isinstance(v, dict):
+                return {k: scrub(x) for k, x in v.items()}
+            return v
+        a = scrub(a)
+    st = dict(stats)
+    st["projects"] = [p for p in stats.get("projects") or [] if p.get("name") not in projects]
+    st.pop("left_out", None)
+    return a, st
+
+
 def report_data(analysis, stats):
     """The whole report as data, for the owner's drive to make a page from.
     It is read as data there, never run."""
     keep = {k: analysis.get(k) for k in ("name", "generated", "verdict", "strongest", "distinctive", "thinnest",
-                                          "sections", "refusals", "names", "loop", "references")}
+                                          "sections", "built", "refusals", "names", "loop", "references")}
     counts = {k: stats.get(k) for k in ("prompts", "sources", "first", "last", "per_day", "median_words",
-                                         "with_image", "refuse_or_remove", "asks_for_variations", "parts", "feel", "named")}
+                                         "with_image", "refuse_or_remove", "asks_for_variations", "parts", "feel", "named",
+                                         "projects")}
     return json.dumps({"analysis": keep, "stats": counts}, ensure_ascii=False, separators=(",", ":"))
 
 
@@ -203,11 +247,14 @@ def serve(analysis, stats, name, report_path):
                 ask = {}
             full = not ask.get("summary_only")
             chosen = apply_levels(json.loads(json.dumps(analysis)), ask.get("levels"))
+            chosen, kept_stats = leave_out(chosen, stats, ask.get("out"))
+            who = str(ask.get("name") or "").strip()[:60] or name
+            chosen["name"] = who
             try:
-                page, origin = send(entry(chosen, stats, name, full=full))
+                page, origin = send(entry(chosen, kept_stats, who, full=full))
             except SendError as err:
                 return self.reply(502, {"error": str(err)})
-            print(f"Sent by {name} from the report. It is on {page}, at {origin}.", flush=True)
+            print(f"Sent by {who} from the report. It is on {page}, at {origin}.", flush=True)
             self.reply(200, {"ok": True, "page": page})
             done.set()
 

@@ -135,9 +135,10 @@
   .q cite { display: block; margin-top: .3rem; font-style: normal; font-size: .78rem; color: var(--muted); }
   .next { padding: .55rem .7rem; border-radius: var(--r-sm); background: var(--hue-wash); color: var(--ink) !important; }
   .next b { font-weight: 600; color: var(--hue-text); margin-right: .25rem; }
-  main[data-show="fluent"] .it:not([data-level="fluent"]),
-  main[data-show="growing"] .it:not([data-level="growing"]),
-  main[data-show="rare"] .it:not([data-level="rare"]) { display: none; }
+  main[data-show="fluent"] .it[data-level]:not([data-level="fluent"]),
+  main[data-show="growing"] .it[data-level]:not([data-level="growing"]),
+  main[data-show="rare"] .it[data-level]:not([data-level="rare"]) { display: none; }
+  .box li[data-held], .names div[data-held] { opacity: .45; }
 
   /* The drawings: greys from the ink, one accent, danger only to strike. */
   svg * { vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
@@ -187,6 +188,40 @@
   .links svg { width: 100%; }
   .lk { fill: none; stroke: color-mix(in srgb, var(--hue) 55%, var(--card)); stroke-width: 1.25; }
 
+  /* What this read: every project, and a switch that keeps it out of what is sent. */
+  .read-sum { margin: 0 0 1rem; max-width: 44rem; }
+  .read-t { display: grid; grid-template-columns: minmax(0, 1.3fr) max-content minmax(0, 1fr) minmax(0, 1.4fr) auto; border-top: 1px solid var(--line); font-size: 13px; }
+  .read-t > div { display: contents; }
+  .read-t span { padding: .5rem .75rem .5rem 0; border-bottom: 1px solid var(--line); min-width: 0; }
+  .read-t .th span { font-size: 12px; font-weight: 600; color: var(--label); }
+  .read-t .nm b { font-weight: 500; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .read-t .nm small, .read-t .dim { color: var(--muted); font-size: 12px; }
+  .read-t .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .read-t [data-off] span:not(:last-child) { color: var(--faint); }
+  .read-t [data-off] b { text-decoration: line-through; text-decoration-color: var(--faint); }
+  .read-left { margin: .75rem 0 0; color: var(--muted); }
+  .sw { position: relative; width: 2.1rem; height: 1.25rem; border: 0; border-radius: var(--pill); background: var(--build); cursor: pointer; padding: 0; transition: background .2s var(--ease); }
+  .sw::after { content: ""; position: absolute; top: 2px; left: calc(100% - 1.25rem + 2px); width: calc(1.25rem - 4px); height: calc(1.25rem - 4px); border-radius: 50%; background: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: left .2s var(--ease); }
+  .sw[aria-checked="false"] { background: var(--paper-3); }
+  .sw[aria-checked="false"]::after { left: 2px; }
+  .sw:focus-visible, .hold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sw-cell { display: flex; align-items: center; gap: .45rem; white-space: nowrap; color: var(--muted); font-size: 12px; }
+
+  /* A card kept out of what is sent stays readable here, quieter, and says so. */
+  .it[data-held] > :not(.foot) { opacity: .45; }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: auto; }
+  .foot .seg { margin-top: 0; }
+  .hold { border: 0; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; padding: .2rem .1rem; border-radius: 6px; }
+  .hold:hover { color: var(--ink); }
+  .it[data-held] .hold { color: var(--ink); font-weight: 600; }
+  .hold:disabled { cursor: default; color: var(--faint); font-weight: 400; }
+  .from { padding-top: .5rem; border-top: 1px solid var(--line); font-size: 13px; }
+  .from b { font-weight: 600; color: var(--hue-text); margin-right: .25rem; }
+  .from code, .made code { font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--label); }
+  .made .meta { font-size: 12px; color: var(--muted); }
+  .made .uses { font-size: 13px; color: var(--ink); }
+  .made .uses b { font-weight: 600; color: var(--hue-text); margin-right: .25rem; }
+
   /* Which project each entry's evidence comes from, by part of the range. */
   .proj { display: grid; grid-template-columns: minmax(0, 11rem) repeat(4, minmax(0, 1fr)); gap: .35rem .75rem; align-items: center; font-size: 13px; }
   .proj .ph { display: flex; align-items: center; gap: .35rem; font-size: 12px; font-weight: 600; color: var(--hue-text); padding-bottom: .2rem; border-bottom: 1px solid var(--line); }
@@ -225,6 +260,8 @@
   .sheet label { display: flex; gap: .5rem; align-items: baseline; padding: .55rem 0 .7rem; border-top: 1px solid var(--line); cursor: pointer; }
   .sheet label span { color: var(--muted); }
   .sheet label b { font-weight: 500; color: var(--ink); }
+  .name-in { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: var(--r-sm); padding: .3rem .55rem; width: min(16rem, 100%); }
+  .name-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .sheet code { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--paper-2); border-radius: 4px; padding: .1rem .3rem; word-break: break-all; }
   .send[data-state="sent"] .send-row p { color: var(--ink); }
   .send-row p.err { color: var(--danger); }
@@ -239,6 +276,11 @@
     .send-row .pill { flex: 1; }
     .grid { grid-template-columns: 1fr; }
     .map-row { grid-template-columns: minmax(0, 1fr) auto; gap: .2rem .5rem; }
+    .read-t { display: block; }
+    .read-t .th { display: none; }
+    .read-t > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: .75rem; padding: .55rem 0; border-bottom: 1px solid var(--line); }
+    .read-t span { border-bottom: 0; padding: 0; }
+    .read-t .sw-cell { grid-column: 2; grid-row: 1 / span 4; align-self: center; }
     .map-row .cells { grid-column: 1 / -1; grid-row: 2; }
     .proj { grid-template-columns: minmax(0, 6.5rem) repeat(4, minmax(0, 1fr)); gap: .35rem .4rem; }
     .proj .ph span { display: none; }
@@ -264,9 +306,20 @@
   const a = data.analysis, s = data.stats;
   const key = `ef-levels:${a.name || ''}:${a.generated || ''}`;
   const saved = JSON.parse(localStorage.getItem(key) || '{}');
+  // What is kept out of what is sent: whole projects, and single cards.
+  const outKey = `ef-out:${a.name || ''}:${a.generated || ''}`;
+  const out = (() => {
+    try { const o = JSON.parse(localStorage.getItem(outKey) || '{}'); return { projects: new Set(o.projects || []), entries: new Set(o.entries || []) }; }
+    catch { return { projects: new Set(), entries: new Set() }; }
+  })();
+  const saveOut = () => localStorage.setItem(outKey, JSON.stringify({ projects: [...out.projects], entries: [...out.entries] }));
   const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const num = (n) => Number(n || 0).toLocaleString('en-US');
   const LEVELS = [['fluent', 'Fluent'], ['growing', 'Growing'], ['rare', 'Rare']];
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const fmtD = (d) => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(d || ''); return m ? `${+m[3]} ${MON[+m[2] - 1]} ${m[1]}` : (d || ''); };
+  const AGENTS = { 'claude-code': 'Claude Code', codex: 'Codex', gemini: 'Gemini CLI', cursor: 'Cursor', file: 'a file you added' };
+  const agentList = (o) => { const xs = Object.keys(o || {}).map((x) => AGENTS[x] || x); return xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : (xs[0] || 'your agents'); };
   const SECTIONS = [
     ['kinds', 'Kinds of UI you build', 'The genres your work falls into.', 'Kinds of UI', 'build'],
     ['features', 'Features you generate', 'What you add to an app once it exists.', 'Features', 'build'],
@@ -319,12 +372,13 @@
     `<button type="button" data-k="${k}" data-i="${i}" data-v="${v}" aria-pressed="${v === level}">${l}</button>`).join('')}</span>`;
   const card = (k, e, i) => {
     const level = levelOf(k, i, e);
-    return `<article class="it" data-level="${level}" id="${k}-${i}">
+    return `<article class="it" data-level="${level}" id="${k}-${i}" data-key="${k}:${i}" data-where="${esc(e.where)}" data-bwhere="${esc(e.built && e.built.where)}">
       ${e.sketch ? `<div class="glyph" aria-hidden="true"><svg viewBox="0 0 160 72">${e.sketch}</svg></div>` : ''}
       <h4><i class="lvl" aria-hidden="true"></i>${esc(e.title)}</h4><p>${esc(e.desc)}</p>
       ${e.quote ? `<blockquote class="q" style="margin:0"><p>${esc(e.quote)}</p><cite>${esc([e.where, e.date].filter(Boolean).join(' · '))}</cite></blockquote>` : ''}
+      ${e.built ? `<p class="from"><b>In what you built</b>${esc(e.built.where)}${e.built.file ? ` · <code>${esc(e.built.file)}</code>` : ''}${e.built.shows ? `: ${esc(e.built.shows)}` : ''}</p>` : ''}
       ${e.next ? `<p class="next"><b>Try next</b>${esc(e.next)}</p>` : ''}
-      ${seg(k, i, level)}</article>`;
+      <div class="foot">${seg(k, i, level)}<button type="button" class="hold"></button></div></article>`;
   };
   const bars = (obj, cls = '') => {
     const rows = Object.entries(obj || {}).sort((x, y) => y[1] - x[1]).slice(0, 18);
@@ -340,7 +394,6 @@
   // Prompts per day, with the four busiest named, and under each day a dot
   // for every entry whose line you wrote that day.
   const days = Object.entries(s.per_day || {});
-  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const dayKey = (d) => { const m = /^\d{4}-(\d\d)-(\d\d)$/.exec(d); return m ? `${+m[2]} ${MON[+m[1] - 1]}` : d; };
   const onDay = {};
   for (const x of all) { const d = String(x.e.date || '').trim().replace(/^0/, ''); if (d) (onDay[d] ||= []).push(x); }
@@ -388,19 +441,48 @@
   })();
 
   const refusals = (a.refusals || []).length ? `<div class="box"><h3 class="k">What you send back</h3><ul>${a.refusals.map((r) =>
-    `<li><span>${esc(r.name)}</span><span class="r-q">${esc(r.quote)}</span><span class="r-d">${esc(r.date)}</span></li>`).join('')}</ul></div>` : '';
+    `<li data-where="${esc(r.where)}"><span>${esc(r.name)}</span><span class="r-q">${esc(r.quote)}</span><span class="r-d">${esc(r.date)}</span></li>`).join('')}</ul></div>` : '';
   const names = (a.names || []).length ? `<div class="box names" data-fam="edge"><h3 class="k">Where a name would help</h3><dl>${a.names.map((n) =>
-    `<div><dt>${esc(n.said)}</dt><span class="arrow" aria-hidden="true">→</span><dd>${n.sketch ? `<svg viewBox="0 0 160 72" aria-hidden="true" style="width:4.5rem">${n.sketch}</svg>` : glyph(n.name)}${esc(n.name)}</dd></div>`).join('')}</dl></div>` : '';
+    `<div data-where="${esc(n.where)}"><dt>${esc(n.said)}</dt><span class="arrow" aria-hidden="true">→</span><dd>${n.sketch ? `<svg viewBox="0 0 160 72" aria-hidden="true" style="width:4.5rem">${n.sketch}</svg>` : glyph(n.name)}${esc(n.name)}</dd></div>`).join('')}</dl></div>` : '';
+
+  // What this read: every project the prompts came from, what was looked
+  // through in each, and a switch that keeps it out of what is sent.
+  const P = s.projects || [];
+  const nBuilt = P.filter((p) => p.built).length;
+  const readSec = P.length ? `<section id="read"><h2>What this read</h2>
+    <p class="sec-d">Everything in this report comes from what is listed here, all of it read on this machine. Switch a project off and nothing from it is sent: not its name, its lines, or what you built there. Each card has its own Don't send as well. To take something out of the report itself, ask your agent to leave it out and run it again.</p>
+    <p class="read-sum">${num(s.prompts)} prompts you typed to ${agentList(s.sources)}, ${esc(fmtD(s.first))} to ${esc(fmtD(s.last))}, in ${num(P.length)} ${P.length === 1 ? 'project' : 'projects'}${nBuilt ? `; the files in ${num(nBuilt)} of them were looked through too` : ''}. Not read: the agents' replies, anything you pasted in, and anything outside these.</p>
+    <div class="read-t" role="table" aria-label="What this read">${P.map((p) => { const b = p.built; return `<div role="row" data-row="${esc(p.name)}">
+      <span class="nm" role="cell"><b>${esc(p.name)}</b><small>${esc(agentList(p.sources))}</small></span>
+      <span class="num" role="cell">${num(p.prompts)} ${p.prompts === 1 ? 'prompt' : 'prompts'}</span>
+      <span class="dim" role="cell">${p.first ? (p.first === p.last ? esc(fmtD(p.first)) : `${esc(fmtD(p.first))} to ${esc(fmtD(p.last))}`) : ''}</span>
+      <span class="dim" role="cell">${b ? `${num(b.files)} files, ${num(b.interface_files)} interface files${b.commits ? `, ${num(b.commits)} commits` : ''}` : 'Prompts only'}</span>
+      <span class="sw-cell" role="cell"><button type="button" class="sw" role="switch" aria-checked="true" aria-label="Send what came from ${esc(p.name)}" data-proj="${esc(p.name)}"></button></span></div>`; }).join('')}</div>
+    ${(s.left_out || []).length ? `<p class="read-left">Left out when you asked: ${s.left_out.map((l) => `${esc(l.name)} (${num(l.prompts)} prompts)`).join(', ')}.</p>` : ''}</section>` : '';
+
+  // What you built: one card per project whose files were read.
+  const B = a.built || [];
+  const builtSec = B.length ? `<section id="built" data-fam="build"><p class="eyebrow">${disc}Building</p><h2>What you built</h2>
+    <p class="sec-d">The projects your prompts came from, read from their files: what each one is, how far it got, and what its code does.</p>
+    <div class="grid">${B.map((b, i) => { const p = P.find((x) => x.name === b.where) || {}; const bt = p.built; return `<article class="it made" data-key="built:${i}" data-where="${esc(b.where)}">
+      ${b.sketch ? `<div class="glyph" aria-hidden="true"><svg viewBox="0 0 160 72">${b.sketch}</svg></div>` : ''}
+      <h4>${esc(b.where)}</h4><p>${esc(b.what)}</p>
+      ${bt ? `<p class="meta">${num(bt.files)} files, ${num(bt.lines_of_code)} lines${bt.commits ? `, ${num(bt.commits)} commits` : ''}${p.first ? ` · ${esc(fmtD(p.first))} to ${esc(fmtD(p.last))}` : ''}</p>` : ''}
+      ${(b.techniques || []).length ? `<p class="uses"><b>Its code uses</b>${b.techniques.map(esc).join(' · ')}</p>` : ''}
+      ${b.notable ? `<p class="next"><b>Most telling</b>${esc(b.notable)}</p>` : ''}
+      <div class="foot"><span></span><button type="button" class="hold"></button></div></article>`; }).join('')}</div></section>` : '';
 
   main.innerHTML = `
     <h1>${esc(a.name ? `${a.name}'s envisioning fluency` : 'Envisioning fluency')}</h1>
     <p class="lede">What you can picture, ask for and get built, read from your own prompts to coding agents. Each level is a judgement from that evidence; change any one you disagree with.</p>
     <nav class="show" aria-label="Show entries by level"><b>Show</b><span class="seg">${[['all', 'All'], ...LEVELS].map(([v, l]) => `<button type="button" data-show="${v}" aria-pressed="${v === 'all'}">${l}</button>`).join('')}</span></nav>
+    ${readSec}
     <section id="portrait"><h2>In short</h2><p class="sec-d">The evaluation, and what it rests on.</p>
       <p class="verdict">${esc(a.verdict)}</p>
       <dl class="stats">
         <div><dt>Prompts read</dt><dd>${num(s.prompts)}</dd></div>
         <div><dt>Days</dt><dd>${num(days.length)}</dd></div>
+        <div><dt>Projects</dt><dd>${num(P.length)}</dd></div>
         <div><dt>Median prompt</dt><dd>${num(s.median_words)} words</dd></div>
         <div><dt>With a screenshot</dt><dd>${num(s.with_image)}</dd></div>
         <div><dt>Refuse or remove</dt><dd>${num(s.refuse_or_remove)}</dd></div>
@@ -410,6 +492,7 @@
       ${projects}
       <div class="pull"><div data-fam="build"><h3 class="k">${disc}Strongest</h3><p>${esc(a.strongest)}</p></div><div data-fam="ask"><h3 class="k">${disc}Most your own</h3><p>${esc(a.distinctive)}</p></div><div data-fam="edge"><h3 class="k">${disc}Thinnest</h3><p>${esc(a.thinnest)}</p></div></div>
     </section>
+    ${builtSec}
     ${SECTIONS.map(([k, title, desc, , f]) => `<section id="${k}" data-fam="${f}"><p class="eyebrow">${disc}${famName[f]}</p><h2>${title}</h2><p class="sec-d">${desc}</p>
       ${k === 'prompting' ? loop : ''}${k === 'metaphors' ? links : ''}
       <div class="grid">${entries(k).map((e, i) => card(k, e, i)).join('')}</div>
@@ -419,10 +502,41 @@
       ${names}</section>
     <p class="lede" style="margin-top:3rem;font-size:.78rem">Generated ${esc(a.generated)} from ${esc(Object.entries(s.sources || {}).map(([k, v]) => `${v} ${k}`).join(', '))} prompts, on this machine.</p>`;
 
+  // Kept out of what is sent: each switch, each card and each line says so.
+  const paintHolds = () => {
+    main.querySelectorAll('.sw[data-proj]').forEach((b) => {
+      const off = out.projects.has(b.dataset.proj);
+      b.setAttribute('aria-checked', String(!off));
+      b.closest('[role="row"]').toggleAttribute('data-off', off);
+    });
+    main.querySelectorAll('.it[data-key]').forEach((c) => {
+      const viaProject = out.projects.has(c.dataset.where) || out.projects.has(c.dataset.bwhere);
+      const mine = out.entries.has(c.dataset.key);
+      const btn = c.querySelector('.hold');
+      if (viaProject) {
+        c.dataset.held = 'project'; btn.disabled = true; btn.removeAttribute('aria-pressed'); btn.textContent = 'Project off';
+      } else {
+        btn.disabled = false; btn.setAttribute('aria-pressed', String(mine)); btn.textContent = mine ? 'Not sent · Undo' : 'Don\u2019t send';
+        if (mine) c.dataset.held = 'you'; else delete c.dataset.held;
+      }
+    });
+    main.querySelectorAll('li[data-where], .names div[data-where]').forEach((r) => r.toggleAttribute('data-held', out.projects.has(r.dataset.where)));
+  };
+  paintHolds();
+
   // Choosing a level: the card, its square on the map, and what is kept.
   main.addEventListener('click', (ev) => {
     const b = ev.target.closest('button');
     if (!b) return;
+    if (b.dataset.proj) {
+      if (out.projects.has(b.dataset.proj)) out.projects.delete(b.dataset.proj); else out.projects.add(b.dataset.proj);
+      saveOut(); paintHolds(); return;
+    }
+    if (b.classList.contains('hold')) {
+      const k2 = b.closest('.it').dataset.key;
+      if (out.entries.has(k2)) out.entries.delete(k2); else out.entries.add(k2);
+      saveOut(); paintHolds(); return;
+    }
     if (b.dataset.show) {
       main.dataset.show = b.dataset.show;
       b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
@@ -463,8 +577,9 @@
     <div class="sheet" id="send-sheet" role="region" aria-labelledby="send-h">
       <h2 id="send-h" tabindex="-1">Before you send</h2>
       <dl>
-        <div><dt>What goes</dt><dd>The verdict, the three findings, every entry with the level you left it at and the line of yours behind it, and the counts. ${owner}'s drive makes it a page of its own.</dd></div>
-        <div><dt>What never goes</dt><dd>Your prompt history. It stays on this machine.</dd></div>
+        <div><dt>What goes</dt><dd>The verdict, the three findings, every card you kept with the level you left it at and the line of yours behind it, what you built in the projects you kept, and the counts. ${owner}'s drive makes it a page of its own.</dd></div>
+        <div><dt>What never goes</dt><dd>Your prompt history and your files. They stay on this machine. <span id="send-held"></span></dd></div>
+        <div><dt>Sent as</dt><dd><input id="send-name" class="name-in" value="${esc(a.name || '')}" aria-label="The name it is sent under" autocomplete="name" spellcheck="false"></dd></div>
         <div><dt>Who can read it</dt><dd>Only ${owner}. The link can add your report to ${page} but can't open it, so nobody else who has this skill can read it.</dd></div>
         ${served ? '' : `<div><dt>Sending from this copy</dt><dd>This copy was opened as a file, so it cannot send by itself. Ask your agent to “send my envisioning fluency report”, or run <code>python3 scripts/send.py --work ef-work --serve</code> and press Send in the page it opens.</dd></div>`}
       </dl>
@@ -492,13 +607,21 @@
     }
   };
 
+  const held = () => { try { const o = JSON.parse(localStorage.getItem(`ef-out:${id}`) || '{}'); return { projects: o.projects || [], entries: o.entries || [] }; } catch { return { projects: [], entries: [] }; } };
+  const sayHeld = () => {
+    const h = held(), parts = [];
+    if (h.projects.length) parts.push(`${h.projects.length} ${h.projects.length === 1 ? 'project' : 'projects'} you switched off (${h.projects.map(esc).join(', ')})`);
+    if (h.entries.length) parts.push(`${h.entries.length} ${h.entries.length === 1 ? 'card' : 'cards'} you marked Don't send`);
+    bar.querySelector('#send-held').innerHTML = parts.length ? `Nor ${parts.join(', or ')}${h.projects.length ? '; where a line you kept names one of those projects, the name is replaced with [left out]' : ''}.` : '';
+  };
   const send = async () => {
     draw('sending');
     let levels = {};
     try { levels = JSON.parse(localStorage.getItem(`ef-levels:${id}`) || '{}'); } catch {}
+    const name = (bar.querySelector('#send-name')?.value || '').trim();
     try {
       const res = await fetch('/send', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-EF-Token': conf.token },
-        body: JSON.stringify({ summary_only: !!bar.querySelector('#send-summary')?.checked, levels }) });
+        body: JSON.stringify({ summary_only: !!bar.querySelector('#send-summary')?.checked, levels, name, out: held() }) });
       const out = await res.json().catch(() => ({}));
       if (!res.ok || !out.ok) throw new Error(out.error || `The page did not answer (${res.status}).`);
       const when = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
@@ -512,7 +635,7 @@
   bar.addEventListener('click', (ev) => {
     const b = ev.target.closest('button[data-do]');
     if (!b) return;
-    if (b.dataset.do === 'open') { draw('open'); bar.querySelector('#send-h').focus(); }
+    if (b.dataset.do === 'open') { sayHeld(); draw('open'); bar.querySelector('#send-h').focus(); }
     else if (b.dataset.do === 'close') { draw('closed'); bar.querySelector('[data-do="open"]').focus(); }
     else if (b.dataset.do === 'send') send();
   });

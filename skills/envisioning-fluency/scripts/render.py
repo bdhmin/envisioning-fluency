@@ -89,9 +89,10 @@ def main():
                 problems.append(f"sections.{k}[{i}].level must be fluent, growing or rare")
             if e.get("sketch"):
                 e["sketch"] = clean_sketch(e["sketch"])
-    for n in analysis.get("names") or []:
-        if n.get("sketch"):
-            n["sketch"] = clean_sketch(n["sketch"])
+    for key in ("names", "built"):
+        for n in analysis.get(key) or []:
+            if isinstance(n, dict) and n.get("sketch"):
+                n["sketch"] = clean_sketch(n["sketch"])
     if problems:
         sys.exit("analysis.json is not finished:\n  " + "\n  ".join(problems))
 
