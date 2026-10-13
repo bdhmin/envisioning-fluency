@@ -260,8 +260,6 @@
   .sheet label { display: flex; gap: .5rem; align-items: baseline; padding: .55rem 0 .7rem; border-top: 1px solid var(--line); cursor: pointer; }
   .sheet label span { color: var(--muted); }
   .sheet label b { font-weight: 500; color: var(--ink); }
-  .name-in { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: var(--r-sm); padding: .3rem .55rem; width: min(16rem, 100%); }
-  .name-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   .sheet code { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--paper-2); border-radius: 4px; padding: .1rem .3rem; word-break: break-all; }
   .send[data-state="sent"] .send-row p { color: var(--ink); }
   .send-row p.err { color: var(--danger); }
@@ -577,13 +575,13 @@
     <div class="sheet" id="send-sheet" role="region" aria-labelledby="send-h">
       <h2 id="send-h" tabindex="-1">Before you send</h2>
       <dl>
+        <div><dt>You are anonymous</dt><dd>Sending this report means it goes in without your name, under a code like Participant 3F2A, and your name is taken out of every line. The lines quoted from your prompts and the projects you keep go as they are, so switch off anything that would say who you are.</dd></div>
         <div><dt>What goes</dt><dd>The verdict, the three findings, every card you kept with the level you left it at and the line of yours behind it, what you built in the projects you kept, and the counts. ${owner}'s drive makes it a page of its own.</dd></div>
         <div><dt>What never goes</dt><dd>Your prompt history and your files. They stay on this machine. <span id="send-held"></span></dd></div>
-        <div><dt>Sent as</dt><dd><input id="send-name" class="name-in" value="${esc(a.name || '')}" aria-label="The name it is sent under" autocomplete="name" spellcheck="false"></dd></div>
+
         <div><dt>Who can read it</dt><dd>Only ${owner}. The link can add your report to ${page} but can't open it, so nobody else who has this skill can read it.</dd></div>
         ${served ? '' : `<div><dt>Sending from this copy</dt><dd>This copy was opened as a file, so it cannot send by itself. Ask your agent to “send my envisioning fluency report”, or run <code>python3 scripts/send.py --work ef-work --serve</code> and press Send in the page it opens.</dd></div>`}
       </dl>
-      ${served ? `<label><input type="checkbox" id="send-summary"><span><b>Send only the summary.</b> Your name, the date, the verdict, the three findings, a square per entry, what you are fluent in and your edges, without the quotes.</span></label>` : ''}
     </div>
     <div class="send-row"><p id="send-say" role="status"></p><span id="send-acts" style="display:contents"></span></div>`;
   const say = bar.querySelector('#send-say');
@@ -598,7 +596,7 @@
       say.innerHTML = `Sent to <b>${owner}</b>${when ? ` on ${esc(when)}` : ''}.`;
       acts.innerHTML = conf.link ? `<a class="pill" href="${esc(conf.link)}" target="_blank" rel="noopener">See their page</a>` : '';
     } else if (state === 'closed') {
-      say.innerHTML = `<b>${owner}</b> collects these reports. Nothing leaves this machine unless you send it.`;
+      say.innerHTML = `<b>${owner}</b> collects these reports anonymously. Nothing leaves this machine unless you send it.`;
       acts.innerHTML = `<button type="button" class="pill go" data-do="open" aria-expanded="false" aria-controls="send-sheet">Review and send</button>`;
     } else {
       say.innerHTML = state === 'sending' ? 'Sending…' : state === 'error' ? esc(note) : `Read it through first. You can change any level above before you send.`;
@@ -618,10 +616,9 @@
     draw('sending');
     let levels = {};
     try { levels = JSON.parse(localStorage.getItem(`ef-levels:${id}`) || '{}'); } catch {}
-    const name = (bar.querySelector('#send-name')?.value || '').trim();
     try {
       const res = await fetch('/send', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-EF-Token': conf.token },
-        body: JSON.stringify({ summary_only: !!bar.querySelector('#send-summary')?.checked, levels, name, out: held() }) });
+        body: JSON.stringify({ levels, out: held() }) });
       const out = await res.json().catch(() => ({}));
       if (!res.ok || !out.ok) throw new Error(out.error || `The page did not answer (${res.status}).`);
       const when = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });

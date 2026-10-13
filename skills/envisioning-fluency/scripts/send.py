@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Send a summary of your report to a shared Marble Drive page. Opt-in.
+"""Send your report, anonymously, to a shared Marble Drive page. Opt-in.
 
   python3 send.py --work ./ef-work --serve       # open the report with its send bar
   python3 send.py --work ./ef-work --preview     # see exactly what would go
@@ -10,10 +10,11 @@ Send button pinned to its foot works: the person reads the report, sees what
 would go, and presses Send themselves. Nothing is sent until they do.
 
 What goes: your report — the verdict, the findings, every entry with its
-level and the line of yours that backs it, and the counts — which becomes a
-page of its own in the owner's drive. With --summary-only, just the summary:
-name, date, verdict, the three findings, a square per entry, the titles you
-are fluent in and your edges. What never goes: your prompt history. The page
+level and the line of yours that backs it, what you built, and the counts —
+which becomes a page of its own in the owner's drive. It goes anonymously:
+under a code like "Participant 3F2A", never your name, and your name is taken
+out of every line that carries it. What never goes: your prompt history,
+your files, and whatever you kept back in the report. The page
 and link are in ../collector.json. It is an add-only link: it can add to
 that one page and nothing else, and it cannot open the page, so only its
 owner can read what anyone sent.
@@ -26,6 +27,9 @@ import html
 import json
 import os
 import re
+import getpass
+import hashlib
+import platform
 import secrets
 import sys
 import threading
@@ -86,6 +90,40 @@ def leave_out(analysis, stats, out):
     st["projects"] = [p for p in stats.get("projects") or [] if p.get("name") not in projects]
     st.pop("left_out", None)
     return a, st
+
+
+def anonymous_label():
+    """The same code from the same person on the same machine, so the owner
+    can tell two sends apart without learning who either is."""
+    try:
+        who = getpass.getuser()
+    except Exception:
+        who = ""
+    digest = hashlib.sha256(f"envisioning-fluency|{platform.node()}|{who}".encode()).hexdigest()
+    return f"Participant {digest[:4].upper()}"
+
+
+def anonymize(analysis, stats):
+    """Send under a code, and take the person's own name out of every line."""
+    a = json.loads(json.dumps(analysis))
+    label = anonymous_label()
+    names = {str(n).strip() for n in (a.get("name"), stats.get("person")) if n and len(str(n).strip()) > 1}
+    names.discard("You")
+    if names:
+        rx = re.compile(r"\b(" + "|".join(re.escape(n) for n in sorted(names, key=len, reverse=True)) + r")\b", re.I)
+
+        def scrub(v):
+            if isinstance(v, str):
+                return rx.sub("[name]", v)
+            if isinstance(v, list):
+                return [scrub(x) for x in v]
+            if isinstance(v, dict):
+                return {k: scrub(x) for k, x in v.items()}
+            return v
+        a = scrub(a)
+    a["name"] = label
+    st = {k: v for k, v in stats.items() if k != "person"}
+    return a, st, label
 
 
 def report_data(analysis, stats):
@@ -185,7 +223,8 @@ def send(entry_html):
         raise SendError("The link opened, but gave no access to add to the page.")
     page = urllib.parse.unquote(location[len("/a/"):])
     op = [{"type": "insert", "parentId": CONF.get("list_id", "reports"), "beforeId": None, "html": entry_html}]
-    url = f"{origin}/ops?app={urllib.parse.quote(page)}&client=ef-{secrets.token_hex(4)}"
+    # The drive takes a tab id of letters and digits only (no hyphen).
+    url = f"{origin}/ops?app={urllib.parse.quote(page)}&client=ef{secrets.token_hex(4)}"
     req = urllib.request.Request(url, data=json.dumps(op).encode(), method="POST",
                                  headers={"Content-Type": "application/json", "Cookie": cookie, "User-Agent": "envisioning-fluency"})
     try:
@@ -245,13 +284,11 @@ def serve(analysis, stats, name, report_path):
                 ask = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
             except ValueError:
                 ask = {}
-            full = not ask.get("summary_only")
             chosen = apply_levels(json.loads(json.dumps(analysis)), ask.get("levels"))
             chosen, kept_stats = leave_out(chosen, stats, ask.get("out"))
-            who = str(ask.get("name") or "").strip()[:60] or name
-            chosen["name"] = who
+            chosen, kept_stats, who = anonymize(chosen, kept_stats)
             try:
-                page, origin = send(entry(chosen, kept_stats, who, full=full))
+                page, origin = send(entry(chosen, kept_stats, who))
             except SendError as err:
                 return self.reply(502, {"error": str(err)})
             print(f"Sent by {who} from the report. It is on {page}, at {origin}.", flush=True)
@@ -291,7 +328,6 @@ def main():
     group.add_argument("--send", action="store_true", help="send it")
     group.add_argument("--serve", action="store_true", help="open the report with its send bar, and send when the person presses Send")
     ap.add_argument("--report", default="envisioning-fluency.html", help="the rendered report, for --serve")
-    ap.add_argument("--summary-only", action="store_true", help="send the summary without the full report")
     args = ap.parse_args()
 
     try:
@@ -303,13 +339,15 @@ def main():
     name = args.name or analysis.get("name") or "Someone"
 
     if args.preview:
-        print(preview(analysis, stats, name, full=not args.summary_only))
+        a2, s2, label = anonymize(analysis, stats)
+        print(preview(a2, s2, label))
         return
     if args.serve:
         serve(analysis, stats, name, args.report)
         return
     try:
-        page, origin = send(entry(analysis, stats, name, full=not args.summary_only))
+        a2, s2, label = anonymize(analysis, stats)
+        page, origin = send(entry(a2, s2, label))
     except SendError as err:
         sys.exit(str(err))
     print(f"Sent. It is on {page}, at {origin}.")
