@@ -32,7 +32,7 @@ What to look for:
 - **Kinds of UI** — the genres they build: workspaces, dashboards, boards, timelines, editors, mail clients, games, specs, explainers. Ground these in what the prompts were about, not in what you guess.
 - **Features** — what they add once an app exists: variations, progress, collapse, drag to reorder, persistence, undo, filters, templates.
 - **Interaction techniques** — drag and reflow, snapping, hover reveals, marks and annotation, keyboard modes, focus+context, overview+detail, progressive disclosure, morphing objects, touch, voice.
-- **How they prompt** — screenshots and pointing, asking for variations then picking one, designing by refusal, numbered fix lists, spec-first, whole-pipeline delegation, procedures and loops, personas, stating the reason, interpolating between options.
+- **How they prompt** — screenshots and pointing, asking for variations then picking one, designing by refusal, numbered fix lists, spec-first, whole-pipeline delegation, procedures and loops, personas, stating the reason, interpolating between options. Notice the order their moves come in, too: the workflows they run (starting something new, fixing how a page looks, shipping), which steps repeat, and one build where the sequence shows clearly.
 - **Design language** — the qualities they ask for, and what they send back (a separate list of refusals, each with a quote).
 - **Metaphors and borrowed products** — every app, site and physical object they name as a model, and which of their own projects it shaped.
 - **Vocabulary** — the precise UI words they use, the vague ones ("thing", "make it nicer"), and the places they describe at length something that has a standard name (e.g. "floating tooltip" → popover, "gradual scale down as you focus" → semantic zoom).
@@ -65,12 +65,31 @@ Then read what they built. For each project in `artifacts.json`, starting with t
   "built":      [ {"where": "project", "what": "One sentence: what it is and who it is for.", "kind": "board", "techniques": ["drag and drop", "keyboard shortcuts"], "notable": "One sentence: the most telling thing in the code.", "sketch": "…"} ],
   "refusals":   [ {"name": "Fingernail borders", "quote": "verbatim", "date": "29 Sep", "where": "project"} ],
   "names":      [ {"said": "floating tooltip", "name": "popover", "sketch": "<rect class='fc' …/>"} ],
-  "loop":       [ {"step": "Ask for variations", "detail": "A to E, side by side", "repeats": true} ],
-  "references": [ {"from": "Figma", "to": "their whiteboard app", "where": "project"} ]
+  "workflows":  [ {"name": "Starting something new", "when": "How most of your builds go, from first idea to shipped.",
+                   "steps": [ {"step": "Ask for variations", "detail": "A to E, side by side"}, … ],
+                   "repeat": {"from": 3, "to": 6, "note": "Steps three to six repeat until it looks right."}} ],
+  "trace":      {"where": "project", "date": "8 Oct", "what": "One sentence: what this build was.",
+                 "turns": [ {"move": "Ask for variations", "quote": "verbatim words", "date": "8 Oct"} ]},
+  "gestures":   [ {"input": "Drag", "does": "reorders rows", "where": "project"} ],
+  "taste":      [ {"low": "Quiet", "high": "Loud", "at": 0.15, "quote": "verbatim words", "where": "project"} ],
+  "references": [ {"from": "Figma", "to": "their whiteboard app", "what": "frames on an endless canvas", "where": "project"} ]
 }
 ```
 
-Aim for 7–13 entries in each section, ordered fluent → growing → rare; 6–10 refusals; 8–14 names; a loop of 4–7 steps; a reference pair for each thing borrowed and the project of theirs it shaped; a `built` item for each project with files.
+**Draw how they work, not only what they did.** The report opens each section with a figure, and the cards follow as its evidence. The figures are what people find most useful, so fill their fields as carefully as the cards:
+
+- `seen` on each `kinds` entry: the ISO dates (`"2026-10-07"`) the kind was asked for. It draws when each kind appeared.
+- `projects` on each `features` entry: every project that has the feature, by prompt or by code. It draws which app got which feature.
+- `gestures`: 6–12 pairs of an input (drag, hover, a key, a mark, a pinch, a scrub) and what it does in their apps, from the prompts and the code. It draws what each gesture does.
+- `workflows`: 1–3 workflows, each 4–7 steps in the order they happen, in their words (`detail` may quote them). `repeat` names the run of steps that loops, by step number from 1. This takes over from `loop`; an older analysis with only `loop` still renders as one workflow.
+- `trace`: one real build, 5–8 consecutive prompts from one project, each with the move it makes (the same names as the workflow steps where they match). Pick the build where their workflow shows most clearly.
+- `taste`: 3–6 scales between two opposites (quiet–loud, dense–airy, plain–decorated, words–pictures), with `at` from 0 to 1 for where their requests sit, and the line of theirs that puts it there.
+- `what` on each reference: what was taken from it, in a few words.
+- `grows_from` on each `edges` entry: the exact `title` of a fluent or growing entry it builds on, so each edge starts from a strength.
+
+Every one is optional, and a figure with nothing to draw is left out, so leave a field out rather than pad it. Every `where` in them follows the rule below.
+
+Aim for 7–13 entries in each section, ordered fluent → growing → rare; 6–10 refusals; 8–14 names; 1–3 workflows of 4–7 steps; a reference pair for each thing borrowed and the project of theirs it shaped; a `built` item for each project with files.
 
 `where` is always a project name exactly as it appears in `prompts.jsonl` and `stats.projects`: the report uses it to leave a project out of what is sent, so a name spelled differently will not be left out. Give an entry `built` when something in their files backs it or contradicts it (an entry may have a quote, `built`, or both); an entry can come from the code alone, such as a technique they use well but never asked for by name. Keep project names out of `verdict`, `strongest`, `distinctive` and `thinnest`, and out of every `desc`, `what` and `notable`: say what the thing is ("your culling board"), not what its folder is called, so leaving a project out of what is sent leaves nothing of its name behind.
 
@@ -88,7 +107,7 @@ Words: plain and specific, second person, no hype, no "leverage" or "seamless". 
 python3 scripts/render.py --work ef-work --out envisioning-fluency.html
 ```
 
-It checks the analysis and writes one HTML file (no network, light and dark, phone and desk). Tell them where it is, and open it: with a `collector.json`, open it through step 5 so its send bar works. In the report they can change any level; the change is kept in their browser.
+It checks the analysis and writes one HTML file (no network, light and dark, phone and desk). A rail on the left lists every section and each one folds from its heading; on a phone the rail is a Sections button at the top. It prints a `note:` for any figure field it could not draw; fix those and render again. Tell them where it is, and open it: with a `collector.json`, open it through step 5 so its send bar works. In the report they can change any level; the change is kept in their browser.
 
 ## 5. Open it with the send bar (only if `collector.json` exists)
 

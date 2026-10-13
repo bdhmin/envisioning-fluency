@@ -89,6 +89,24 @@ def main():
                 problems.append(f"sections.{k}[{i}].level must be fluent, growing or rare")
             if e.get("sketch"):
                 e["sketch"] = clean_sketch(e["sketch"])
+    # The figures' fields are optional; a malformed one is dropped with a
+    # note rather than stopping the render, and the page leaves it out.
+    notes = []
+    for key, want in (("workflows", list), ("gestures", list), ("taste", list), ("trace", dict), ("references", list)):
+        if key in analysis and not isinstance(analysis[key], want):
+            notes.append(f"analysis.{key} should be a {want.__name__}; left out")
+            analysis.pop(key)
+    for w in analysis.get("workflows") or []:
+        n, r = len((w or {}).get("steps") or []), (w or {}).get("repeat") or {}
+        if r and not (isinstance(r.get("from"), int) and isinstance(r.get("to"), int) and 1 <= r["from"] < r["to"] <= n):
+            notes.append(f"workflow {w.get('name')!r}: repeat needs 1 <= from < to <= {n}; drawn without the arrow")
+    for x in analysis.get("taste") or []:
+        if not isinstance(x.get("at"), (int, float)) or not 0 <= x["at"] <= 1:
+            notes.append(f"taste {x.get('low')!r} to {x.get('high')!r}: at must be a number from 0 to 1")
+    titles = {e.get("title") for k in SECTIONS for e in (analysis.get("sections") or {}).get(k) or []}
+    for e in (analysis.get("sections") or {}).get("edges") or []:
+        if e.get("grows_from") and e["grows_from"] not in titles:
+            notes.append(f"edge {e.get('title')!r}: grows_from {e['grows_from']!r} is not the title of an entry")
     for key in ("names", "built"):
         for n in analysis.get(key) or []:
             if isinstance(n, dict) and n.get("sketch"):
@@ -104,6 +122,8 @@ def main():
     html = html.replace("/*__SEND__*/null", collector_json())
     with open(args.out, "w", encoding="utf-8") as f:
         f.write(html)
+    for n in notes:
+        print(f"note: {n}")
     print(f"wrote {args.out}")
 
 
