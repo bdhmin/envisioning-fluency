@@ -33,7 +33,7 @@ npx skills add bdhmin/envisioning-fluency -g
 curl -fsSL https://raw.githubusercontent.com/bdhmin/envisioning-fluency/main/install.sh | sh
 ```
 
-For another agent's skills folder, set `SKILLS_DIR`, for example `| SKILLS_DIR=~/.codex/skills sh`.
+For another agent's skills folder, set `SKILLS_DIR`, for example `| SKILLS_DIR=~/.agents/skills sh`.
 
 **By hand.** Download this repo, copy `skills/envisioning-fluency` anywhere, open your agent in that folder, and say: "Read SKILL.md in this folder and follow it to write my envisioning fluency report."
 

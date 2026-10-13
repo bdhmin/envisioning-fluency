@@ -1,7 +1,7 @@
 #!/bin/sh
 # Installs the envisioning-fluency skill into ~/.claude/skills (or $SKILLS_DIR).
 #   curl -fsSL https://raw.githubusercontent.com/bdhmin/envisioning-fluency/main/install.sh | sh
-#   curl -fsSL .../install.sh | SKILLS_DIR=~/.codex/skills sh
+#   curl -fsSL .../install.sh | SKILLS_DIR=~/.agents/skills sh
 set -eu
 dest="${SKILLS_DIR:-$HOME/.claude/skills}"
 tmp="$(mktemp -d)"
