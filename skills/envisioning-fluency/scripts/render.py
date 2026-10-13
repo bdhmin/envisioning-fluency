@@ -23,7 +23,7 @@ LEVELS = {"fluent", "growing", "rare"}
 SHAPE = re.compile(r"<(rect|line|circle|ellipse|path|polyline|polygon|g)\b([^<>]*)/?>|</g>", re.I)
 ATTR = re.compile(r'\s([a-z-]+)\s*=\s*"([^"]*)"|\s([a-z-]+)\s*=\s*\'([^\']*)\'', re.I)
 GEOMETRY = {"x", "y", "x1", "y1", "x2", "y2", "cx", "cy", "r", "rx", "ry", "width", "height", "d", "points", "class", "transform"}
-CLASSES = {"ln", "lt", "fl", "fc", "ac", "as", "dash", "bad"}
+CLASSES = {"ln", "lt", "fl", "fc", "ac", "a2", "as", "dash", "bad"}
 
 
 def clean_sketch(svg):
@@ -89,6 +89,9 @@ def main():
                 problems.append(f"sections.{k}[{i}].level must be fluent, growing or rare")
             if e.get("sketch"):
                 e["sketch"] = clean_sketch(e["sketch"])
+    for n in analysis.get("names") or []:
+        if n.get("sketch"):
+            n["sketch"] = clean_sketch(n["sketch"])
     if problems:
         sys.exit("analysis.json is not finished:\n  " + "\n  ".join(problems))
 

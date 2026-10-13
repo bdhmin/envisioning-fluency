@@ -60,7 +60,7 @@ Judge each entry's level from the evidence: **fluent** (frequent and specific), 
     "edges":       [ {"title": "…", "level": "rare", "desc": "…", "quote": "…", "next": "One concrete thing to try next."} ]
   },
   "refusals":   [ {"name": "Fingernail borders", "quote": "verbatim", "date": "29 Sep"} ],
-  "names":      [ {"said": "floating tooltip", "name": "popover"} ],
+  "names":      [ {"said": "floating tooltip", "name": "popover", "sketch": "<rect class='fc' …/>"} ],
   "loop":       [ {"step": "Ask for variations", "detail": "A to E, side by side", "repeats": true} ],
   "references": [ {"from": "Figma", "to": "their whiteboard app"} ]
 }
@@ -68,7 +68,11 @@ Judge each entry's level from the evidence: **fluent** (frequent and specific), 
 
 Aim for 7–13 entries in each section, ordered fluent → growing → rare; 6–10 refusals; 8–14 names; a loop of 4–7 steps; a reference pair for each thing borrowed and the project of theirs it shaped.
 
-`sketch` is optional and worth doing: a small wireframe of the entry drawn as SVG shapes in a 160×72 box, as a designer would sketch it in a margin. Only `rect`, `line`, `circle`, `ellipse`, `path`, `polyline`, `polygon`, `g`; only geometry attributes; only the classes `ln` (muted stroke), `lt` (faint stroke), `fl` (grey fill), `fc` (card fill), `ac` (accent fill), `as` (accent stroke), `dash`. No text in a sketch. Accent marks the one thing the entry is about; rare entries are dashed with no accent. `render.py` strips anything else.
+`sketch`: draw one for every entry a picture can show, which is nearly all of them. It is a small wireframe of the entry drawn as SVG shapes in a 160×72 box, as a designer would sketch it in a margin. Only `rect`, `line`, `circle`, `ellipse`, `path`, `polyline`, `polygon`, `g`; only geometry attributes; only the classes `ln` (muted stroke), `lt` (faint stroke), `fl` (grey fill), `fc` (card fill), `ac` (colour fill), `a2` (pale colour fill), `as` (colour stroke), `dash`. No text in a sketch. `render.py` strips anything else.
+
+The colour is not yours to pick: the report paints `ac`, `a2` and `as` in the colour of the entry's part of the range (green for kinds, features and interaction; blue for prompting and design language; terracotta for references; gold for edges), so the same colour means the same thing on every chart. Use `ac` for the one thing the entry is about and `a2` for what it acts on or what comes second; leave the rest grey. A rare entry is dashed. An edge is drawn as what its `next` would look like if they tried it, dashed where it does not exist yet, so the reader can see the thing they have not asked for.
+
+Each `names` item may carry a `sketch` too, in the same box and classes: a picture of the named pattern (a loupe with a filmstrip under it, a slider wiping between two images), so the name arrives with an example. Draw one for every name you can.
 
 Words: plain and specific, second person, no hype, no "leverage" or "seamless". Every heading and line should tell the reader something about themselves.
 
