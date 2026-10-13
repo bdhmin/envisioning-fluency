@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 ef-work/
+
+# The drive page that manages this repo is the owner's, not part of the skill.
+*.mrbl
