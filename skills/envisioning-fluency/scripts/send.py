@@ -70,8 +70,15 @@ def leave_out(analysis, stats, out):
     for k, items in list(secs.items()):
         secs[k] = [x for i, x in enumerate(items or []) if f"{k}:{i}" not in cards and not gone(x)]
     a["built"] = [x for i, x in enumerate(a.get("built") or []) if f"built:{i}" not in cards and not gone(x)]
-    for key in ("refusals", "names", "references"):
+    for key in ("refusals", "names", "references", "gestures", "taste"):
         a[key] = [x for x in a.get(key) or [] if not gone(x)]
+    # The figures: a build traced from a switched-off project goes whole,
+    # and a feature keeps only the projects still switched on.
+    if gone(a.get("trace")):
+        a.pop("trace", None)
+    for x in secs.get("features") or []:
+        if isinstance(x, dict) and x.get("projects"):
+            x["projects"] = [p for p in x["projects"] if p not in projects]
     # A line kept from another project can still name one that was switched
     # off ("same as the triage board"): the name goes, wherever it is.
     if projects:
@@ -130,7 +137,8 @@ def report_data(analysis, stats):
     """The whole report as data, for the owner's drive to make a page from.
     It is read as data there, never run."""
     keep = {k: analysis.get(k) for k in ("name", "generated", "verdict", "strongest", "distinctive", "thinnest",
-                                          "sections", "built", "refusals", "names", "loop", "references")}
+                                          "sections", "built", "refusals", "names", "loop", "references",
+                                          "workflows", "trace", "gestures", "taste")}
     counts = {k: stats.get(k) for k in ("prompts", "sources", "first", "last", "per_day", "median_words",
                                          "with_image", "refuse_or_remove", "asks_for_variations", "parts", "feel", "named",
                                          "projects")}

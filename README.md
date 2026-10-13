@@ -19,13 +19,19 @@ Pick one.
 
 Run `/plugin marketplace update envisioning-fluency` later to get new versions.
 
+**Cursor plugin.** In Cursor, open Customize, choose From GitHub Repository, paste `https://github.com/bdhmin/envisioning-fluency`, and install Envisioning fluency from the plugins it lists. Or, from a terminal, put it where Cursor reads skills:
+
+```sh
+npx skills@1.5.15 add bdhmin/envisioning-fluency -g -a cursor -y
+```
+
 **Any agent, with Node.** Works for Claude Code, Codex, Cursor, Gemini CLI and others; it asks which ones.
 
 ```sh
-npx skills add bdhmin/envisioning-fluency -g
+npx skills@1.5.15 add bdhmin/envisioning-fluency -g
 ```
 
-`-g` installs it for every project; leave it off to install into the current one.
+`-g` installs it for every project; leave it off to install into the current one. Needs Node 18 or newer. The `@1.5.15` keeps the installer on its last release that runs on Node 18 and 20; newer ones need Node 22 and stop with "does not provide an export named 'styleText'".
 
 **One line, no Node.** Puts the skill in `~/.claude/skills`.
 

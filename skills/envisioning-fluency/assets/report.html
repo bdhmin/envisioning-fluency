@@ -36,6 +36,7 @@
     --ease: cubic-bezier(.22, .61, .36, 1);
     --ui: "Google Sans", Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --serif: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6.5 8 10.5 12 6.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
   [data-fam="build"] { --hue: var(--build); }
   [data-fam="ask"] { --hue: var(--ask); }
@@ -66,10 +67,38 @@
   .seg button:hover { color: var(--ink); }
   .seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px light-dark(rgba(74,66,52,.14), rgba(0,0,0,.5)); }
   .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .show { position: sticky; top: .65rem; z-index: 5; width: fit-content; display: flex; align-items: center; gap: .55rem; padding: .3rem .35rem .3rem .85rem; border: 1px solid var(--line); border-radius: var(--pill); background: light-dark(rgba(250,250,247,.78), rgba(22,24,26,.78)); backdrop-filter: blur(20px); box-shadow: var(--shadow-rest); }
-  .show .seg button { font-size: 13px; padding: .2rem .7rem; }
-  .show b { font-size: 13px; font-weight: 600; color: var(--label); }
-  @media (prefers-reduced-transparency: reduce) { .show { background: var(--paper); backdrop-filter: none; } }
+  /* Getting around. The report is long, so a rail on the left lists every
+     section in page order, in its part's colour, and holds the level filter.
+     Which section is being read is derived from the scroll, never stored. */
+  .shell { display: grid; grid-template-columns: 13.5rem minmax(0, 64rem); justify-content: center; column-gap: .5rem; padding-left: 1rem; }
+  .shell main { margin: 0; min-width: 0; }
+  .rail { position: sticky; top: 0; align-self: start; max-height: 100dvh; overflow: auto; padding: 2.9rem 0 2rem; display: flex; flex-direction: column; gap: 1.1rem; scrollbar-width: none; }
+  .rail-top { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; }
+  .rail-k { margin: 0 0 .2rem .65rem; font-size: 13px; font-weight: 600; color: var(--label); }
+  .rail-top .rail-k { margin-left: 0; }
+  .rail-btn { display: none; }
+  .rail-list { display: flex; flex-direction: column; gap: .1rem; }
+  .rail-list a { display: flex; align-items: center; gap: .5rem; padding: .3rem .65rem; border-radius: var(--pill); color: var(--muted); text-decoration: none; font-size: 13px; transition: background .2s var(--ease), color .2s var(--ease); }
+  .rail-list a:hover, .rail-list a:focus-visible { background: var(--paper-3); color: var(--ink); outline: none; }
+  .rail-list a[aria-current="true"] { background: var(--paper-2); color: var(--ink); font-weight: 500; }
+  .rail-list a .disc { width: .5rem; height: .5rem; }
+  .rail-list a:not([data-fam]) .disc { background: var(--paper-3); box-shadow: inset 0 0 0 1px var(--line); }
+  .rail-list a[data-folded] { color: var(--faint); }
+  .fold-all { align-self: flex-start; margin: .5rem 0 0 .2rem; border: 0; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; padding: .25rem .45rem; border-radius: 6px; }
+  .fold-all:hover { color: var(--ink); background: var(--paper-2); }
+  .rail-list a:focus-visible, .fold-all:focus-visible, .rail-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* Every section folds from its heading to its title and one line of what
+     is inside. The arrow is one drawn chevron in currentColor. */
+  section { scroll-margin-top: 1rem; }
+  h2 .fold { display: inline-flex; align-items: center; gap: .35rem; margin: 0 0 0 -.4rem; padding: .1rem .4rem; border: 0; border-radius: var(--r-sm); background: transparent; font: inherit; letter-spacing: inherit; text-align: left; cursor: pointer; }
+  h2 .fold:hover { background: var(--paper-2); }
+  h2 .fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .chev { flex: none; width: 1rem; height: 1rem; background: var(--faint); -webkit-mask: var(--chevron) center / contain no-repeat; mask: var(--chevron) center / contain no-repeat; transition: transform .2s var(--ease); }
+  section[data-folded] .chev { transform: rotate(-90deg); }
+  .sec-sum { display: none; margin: 0; color: var(--muted); }
+  section[data-folded] .sec-sum { display: block; }
+  .sec-b[hidden] { display: none; }
 
   .verdict { margin: 0 0 1.5rem; max-width: 44rem; font-family: var(--serif); font-size: 1.1rem; line-height: 1.6; }
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: .75rem 1rem; margin: 0 0 1.5rem; }
@@ -171,8 +200,16 @@
   .bars.glyphs li { padding-top: .2rem; padding-bottom: .2rem; }
   .bars .n { color: var(--muted); font-variant-numeric: tabular-nums; }
 
-  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .45rem; counter-reset: st; }
-  .steps li { display: flex; flex-direction: column; gap: .15rem; padding: .6rem .65rem; border: 1px solid var(--line); border-radius: var(--r-sm); counter-increment: st; }
+  /* A workflow: its steps in a row, joined by a short rule, and an arrow
+     back under the run of steps that repeats. --n, --from and --to are set
+     on the row, so the arrow lands under the middle of each step. */
+  .wf-row { position: relative; --g: .6rem; --w: calc((100% - (var(--n) - 1) * var(--g)) / var(--n)); }
+  .wf-row:has(.back) { margin-bottom: 1.25rem; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: var(--g, .45rem); counter-reset: st; }
+  .steps li { position: relative; display: flex; flex-direction: column; gap: .15rem; padding: .6rem .65rem; border: 1px solid var(--line); border-radius: var(--r-sm); counter-increment: st; }
+  .steps li:not(:last-child)::after { content: ""; position: absolute; top: 50%; right: calc(-1 * var(--g) - 1px); width: var(--g); border-top: 1px solid var(--line); }
+  .back { position: absolute; top: calc(100% + 1px); height: .9rem; left: calc((var(--from) - 1) * (var(--w) + var(--g)) + var(--w) / 2); width: calc((var(--to) - var(--from)) * (var(--w) + var(--g))); border: 1.5px solid var(--hue); border-top: 0; border-radius: 0 0 6px 6px; }
+  .back::before { content: ""; position: absolute; left: -4.75px; top: -3px; width: 8px; height: 7px; background: var(--hue); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
   .steps li::before { content: counter(st); font-size: .78rem; color: var(--muted); }
   .steps li::before { color: var(--hue-text); font-weight: 600; }
   .steps li.in { background: var(--hue-wash); border-color: var(--hue-tint); }
@@ -186,7 +223,50 @@
   .links .l { text-align: right; padding-right: .6rem; font-weight: 500; color: var(--hue-text); }
   .links .r li { padding-left: .6rem; color: var(--ink); }
   .links svg { width: 100%; }
-  .lk { fill: none; stroke: color-mix(in srgb, var(--hue) 55%, var(--card)); stroke-width: 1.25; }
+  .lk { fill: none; stroke: color-mix(in srgb, var(--hue) 55%, var(--card)); stroke-width: 1.25; transition: opacity .2s var(--ease); }
+  /* Pointing at a name lights its lines and says what went along them. */
+  .links li[tabindex] { cursor: default; border-radius: 6px; outline: none; }
+  .links li:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+  .lfig[data-hot] .lk { opacity: .18; }
+  .lfig[data-hot] .lk.on { opacity: 1; stroke: var(--hue); stroke-width: 2; }
+  .lfig[data-hot] li:not(.on) { color: var(--faint); }
+  .lk-say { min-height: 1.5em; margin: .6rem 0 0; font-size: 13px; color: var(--muted); }
+  .lk-say b { font-weight: 600; color: var(--ink); }
+
+  /* The other figures each section opens with. */
+  .fig { margin: 0 0 1.75rem; }
+  h3.each { margin-top: .25rem; }
+  .tl { display: grid; gap: .15rem; }
+  .tl-row { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr); align-items: center; gap: .9rem; min-height: 1.6rem; font-size: 13px; }
+  .tl-n { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tl-t { position: relative; height: 1.6rem; border-bottom: 1px solid var(--line); }
+  .tl-t b { position: absolute; top: 50%; height: 2px; margin-top: -1px; background: var(--hue-tint); }
+  .tl-t i { position: absolute; z-index: 1; top: 50%; width: 9px; height: 9px; border-radius: 50%; transform: translate(-50%, -50%); background: var(--card); box-shadow: inset 0 0 0 1.5px var(--hue); }
+  .tl-t i.fluent { background: var(--hue); box-shadow: none; }
+  .tl-t i.growing { background: var(--hue-tint); box-shadow: none; }
+  .tl-ax .tl-t { height: auto; border: 0; display: flex; justify-content: space-between; }
+  .tl-ax small { font-size: 12px; color: var(--muted); }
+  .fx { display: grid; grid-template-columns: minmax(0, 14rem) repeat(var(--cols), 1.5rem) auto; align-items: center; gap: .3rem .25rem; font-size: 13px; }
+  .fx-h { justify-self: center; align-self: end; max-height: 8rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 12px; color: var(--muted); }
+  .fx-n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: .5rem; }
+  .fx .cells { justify-content: center; }
+  .fx .cells i { width: 16px; height: 16px; }
+  .fx .cells i.no { border-color: transparent; background: color-mix(in srgb, var(--faint) 40%, var(--card)); width: 6px; height: 6px; border-radius: 50%; margin: 5px; }
+  .fx .cells i.rare { border-color: transparent; background: var(--card); box-shadow: inset 0 0 0 1.25px var(--hue); }
+  .fx .tally { padding-left: .5rem; }
+  .trace { list-style: none; margin: 0; padding: 0; counter-reset: tr; }
+  .trace li { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: .2rem 1rem; align-items: baseline; padding: .5rem 0; border-top: 1px solid var(--line); counter-increment: tr; }
+  .trace b { font-size: 13px; font-weight: 600; color: var(--hue-text); }
+  .trace b::before { content: counter(tr) "  "; color: var(--muted); font-weight: 400; white-space: pre; }
+  .trace q { font-family: var(--serif); font-size: .98rem; line-height: 1.45; }
+  .trace small { grid-column: 2; font-size: .78rem; color: var(--muted); }
+  .taste { display: grid; }
+  .ts { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr) minmax(0, 8rem); align-items: center; gap: .3rem .9rem; padding: .55rem 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .ts-l { text-align: right; }
+  .ts-t { position: relative; height: 2px; border-radius: 1px; background: var(--paper-3); }
+  .ts-t i { position: absolute; top: 50%; width: .8rem; height: .8rem; border-radius: 50%; transform: translate(-50%, -50%); background: var(--hue); }
+  .ts q { grid-column: 2; font-family: var(--serif); color: var(--muted); }
+  main [data-where][data-held]:not(.it) { opacity: .4; }
 
   /* What this read: every project, and a switch that keeps it out of what is sent. */
   .read-sum { margin: 0 0 1rem; max-width: 44rem; }
@@ -267,8 +347,38 @@
   @media (pointer: coarse) { .pill { padding: .65rem 1.1rem; } .sheet input { width: 1.25rem; height: 1.25rem; } }
   body.has-send main { padding-bottom: 9rem; }
 
+  /* Narrower than the rail and a column side by side: the rail folds into a
+     Sections button that floats at the top with the filter, and opens the
+     same list under it. It floats, so it is glass, one layer deep. */
+  @container page (max-width: 52rem) {
+    .shell { grid-template-columns: minmax(0, 1fr); padding-left: 0; }
+    .rail { position: sticky; top: .65rem; z-index: 6; justify-self: center; max-height: none; overflow: visible; padding: 0; margin-top: .65rem; }
+    .rail-top { flex-direction: row; align-items: center; gap: .4rem; padding: .3rem; border: 1px solid var(--line); border-radius: var(--pill); background: light-dark(rgba(250,250,247,.8), rgba(22,24,26,.8)); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: var(--shadow-rest); }
+    .rail-top .rail-k { display: none; }
+    .rail-btn { display: inline-flex; align-items: center; gap: .3rem; border: 0; background: transparent; border-radius: var(--pill); padding: .25rem .55rem .25rem .75rem; font-size: 13px; font-weight: 600; color: var(--label); cursor: pointer; }
+    .rail-btn:hover { background: var(--paper-2); }
+    .rail-btn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+    .rail-list { display: none; position: absolute; top: calc(100% + .4rem); left: 0; width: min(17rem, calc(100vw - 2rem)); max-height: min(70dvh, 30rem); overflow: auto; padding: .4rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); box-shadow: var(--shadow-rest); }
+    .rail[data-open] .rail-list { display: flex; animation: rise .2s var(--ease); }
+    section { scroll-margin-top: 4.25rem; }
+  }
+  @media (prefers-reduced-transparency: reduce) { .rail-top { background: var(--paper) !important; backdrop-filter: none !important; } }
+  @media (pointer: coarse) { .rail-list a { padding: .55rem .8rem; } .rail-btn, .rail-top .seg button { min-height: 2.25rem; } }
   @container page (max-width: 620px) {
     main { padding: 1.5rem 1.1rem 6rem; }
+    .steps { grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; }
+    .wf-row:has(.back) { margin-bottom: 0; padding-left: 1.2rem; }
+    .wf-row { --h: calc((100% - (var(--n) - 1) * var(--g)) / var(--n)); }
+    .steps li:not(:last-child)::after { top: 100%; right: auto; left: 50%; width: 0; height: var(--g); border-top: 0; border-left: 1px solid var(--line); }
+    .back { left: 0; width: .9rem; top: calc((var(--from) - 1) * (var(--h) + var(--g)) + var(--h) / 2); height: calc((var(--to) - var(--from)) * (var(--h) + var(--g))); border: 1.5px solid var(--hue); border-right: 0; border-radius: 6px 0 0 6px; }
+    .back::before { left: auto; right: -3px; top: -4.75px; width: 7px; height: 8px; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+    .tl-row { grid-template-columns: minmax(0, 7rem) minmax(0, 1fr); gap: .6rem; }
+    .fx { grid-template-columns: minmax(0, 1fr) repeat(var(--cols), 1.15rem) auto; gap: .3rem .15rem; }
+    .fx .cells i { width: 12px; height: 12px; }
+    .trace li { grid-template-columns: minmax(0, 1fr); }
+    .trace small { grid-column: 1; }
+    .ts { grid-template-columns: minmax(0, 5rem) minmax(0, 1fr) minmax(0, 5rem); gap: .3rem .6rem; }
+    .links { grid-template-columns: minmax(0, 1fr) minmax(2rem, .6fr) minmax(0, 1fr); }
     .send-row { flex-wrap: wrap; }
     .send-row p { flex-basis: 100%; }
     .send-row .pill { flex: 1; }
@@ -290,7 +400,7 @@
 </style>
 </head>
 <body>
-<main data-show="all"></main>
+<div class="shell"><nav class="rail" aria-label="Sections" hidden></nav><main data-show="all"></main></div>
 <aside class="send" id="send" hidden aria-label="Send this report"></aside>
 <script type="application/json" id="data">/*__DATA__*/null</script>
 <script type="application/json" id="collector">/*__SEND__*/null</script>
@@ -420,23 +530,104 @@
       ${rows.map(([w, xs]) => `<span class="pn" title="${esc(w)}">${esc(w)}</span>${FAMS.map(([f]) => `<span class="cells" data-fam="${f}">${xs.filter((x) => x.fam === f).map((x) => mark(x)).join('')}</span>`).join('')}`).join('')}</div></figure>`;
   })();
 
-  const loop = (a.loop || []).length ? `<figure><h3 class="k">The loop you run</h3><figcaption><p>How most of your builds go, from first idea to shipped.</p></figcaption>
-    <ol class="steps">${a.loop.map((st) => `<li class="${st.repeats ? 'in' : ''}"><b>${esc(st.step)}</b><span>${esc(st.detail)}</span></li>`).join('')}</ol>
-    ${a.loop.some((st) => st.repeats) ? '<p class="loop-note">The tinted steps repeat until it looks right.</p>' : ''}</figure>` : '';
+  // ---- The figures each section opens with. They draw how you work (what
+  // came when, what went where, what repeats), and the cards under them are
+  // the evidence. Each reads its own optional field of the analysis; with
+  // nothing to draw it is left out, never drawn empty. Every mark carries
+  // the project it came from, so switching a project off fades it.
+  const T = (d) => {
+    const iso = /^(\d{4})-(\d\d)-(\d\d)/.exec(d || '');
+    if (iso) return Date.UTC(+iso[1], +iso[2] - 1, +iso[3]);
+    const m = /^(\d{1,2})\s+([A-Za-z]{3})/.exec(String(d || '').trim());
+    const mo = m ? MON.findIndex((x) => x.toLowerCase() === m[2].toLowerCase()) : -1;
+    return mo < 0 ? null : Date.UTC(+String(s.last || '').slice(0, 4) || new Date().getUTCFullYear(), mo, +m[1]);
+  };
+  const WORD = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
 
-  const links = (() => {
-    const pairs = a.references || [];
+  // Kinds of UI: a row per kind, in the order you first asked for it.
+  const timeline = (() => {
+    const t0 = T(s.first), t1 = T(s.last);
+    const rows = entries('kinds').map((e, i) => ({ e, i, ts: (e.seen || []).map(T).filter((t) => t != null).sort((x, y) => x - y) })).filter((r) => r.ts.length);
+    if (rows.length < 2 || t0 == null || t1 == null) return '';
+    rows.sort((p, q) => p.ts[0] - q.ts[0]);
+    const at = (t) => Math.min(100, Math.max(0, (t - t0) / Math.max(1, t1 - t0) * 100)).toFixed(2);
+    return `<figure class="fig"><h3 class="k">When each kind appeared</h3><figcaption><p>A row for each kind, in the order you first asked for it, with a dot on every day you did. A long line is a kind you keep coming back to.</p></figcaption>
+      <div class="tl">${rows.map(({ e, i, ts }) => `<div class="tl-row" data-where="${esc(e.where)}"><span class="tl-n" title="${esc(e.title)}">${esc(e.title)}</span><span class="tl-t"><b style="left:${at(ts[0])}%;right:${(100 - at(ts[ts.length - 1])).toFixed(2)}%"></b>${ts.map((t) => `<i class="${levelOf('kinds', i, e)}" data-cell="kinds:${i}" style="left:${at(t)}%" title="${esc(e.title)} · ${esc(fmtD(new Date(t).toISOString().slice(0, 10)))}"></i>`).join('')}</span></div>`).join('')}
+      <div class="tl-row tl-ax" aria-hidden="true"><span></span><span class="tl-t"><small>${esc(fmtD(s.first))}</small><small>${esc(fmtD(s.last))}</small></span></div></div></figure>`;
+  })();
+
+  // Features: which project has which, so what you carry stands out.
+  const featGrid = (() => {
+    const rows = entries('features').map((e, i) => ({ e, i, ps: [...new Set((e.projects || []).map(String))] })).filter((r) => r.ps.length);
+    const n = new Map();
+    rows.forEach((r) => r.ps.forEach((p) => n.set(p, (n.get(p) || 0) + 1)));
+    const cols = [...n.keys()].sort((p, q) => n.get(q) - n.get(p)).slice(0, 10);
+    if (rows.length < 2 || cols.length < 2) return '';
+    rows.sort((p, q) => q.ps.length - p.ps.length);
+    return `<figure class="fig"><h3 class="k">Which app got which feature</h3><figcaption><p>Each feature against the projects that have it. A long row is a feature you carry from app to app; a single square is one you tried once.</p></figcaption>
+      <div class="fx" style="--cols:${cols.length}"><span></span>${cols.map((p) => `<span class="fx-h" data-where="${esc(p)}" title="${esc(p)}">${esc(p)}</span>`).join('')}<span></span>
+      ${rows.map(({ e, i, ps }) => `<span class="fx-n" title="${esc(e.title)}">${esc(e.title)}</span>${cols.map((p) => `<span class="cells" data-where="${esc(p)}">${ps.includes(p) ? `<i class="${levelOf('features', i, e)}" data-cell="features:${i}" title="${esc(e.title)} · ${esc(p)}"></i>` : '<i class="no"></i>'}</span>`).join('')}<span class="tally">${ps.length} ${ps.length === 1 ? 'app' : 'apps'}</span>`).join('')}</div></figure>`;
+  })();
+
+  // Two columns joined by lines: what you borrowed and what it shaped, an
+  // input and what it does, a strength and the edge it leads to. Pointing at
+  // a name lights its lines and says what went along them.
+  const linkFig = (pairs, title, cap, rest) => {
+    pairs = pairs.filter((p) => p.l && p.r).map((p) => ({ ...p, l: String(p.l), r: String(p.r) }));
     if (!pairs.length) return '';
-    const L = [...new Set(pairs.map((p) => p.from))], R = [...new Set(pairs.map((p) => p.to))];
+    const L = [...new Set(pairs.map((p) => p.l))], R = [...new Set(pairs.map((p) => p.r))];
     const rows = Math.max(L.length, R.length), offL = rows - L.length, offR = rows - R.length;
     const y = (i, off) => 2 * i + 1 + off;
-    return `<figure><h3 class="k">Where each reference landed</h3><figcaption><p>On the left, what you borrowed from; on the right, what of yours it shaped.</p></figcaption>
-      <div class="links"><ul class="l" style="padding-top:${offL}rem">${L.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+    return `<figure class="fig lfig"><h3 class="k">${title}</h3><figcaption><p>${cap}</p></figcaption>
+      <div class="links"><ul class="l" style="padding-top:${offL}rem">${L.map((x, i) => `<li tabindex="0" data-l="${i}" title="${esc(x)}">${esc(x)}</li>`).join('')}</ul>
       <svg viewBox="0 0 100 ${rows * 2}" preserveAspectRatio="none" style="height:${rows * 2}rem" aria-hidden="true">${pairs.map((p) => {
-        const a1 = y(L.indexOf(p.from), offL), b1 = y(R.indexOf(p.to), offR);
-        return `<path class="lk" d="M0 ${a1} C50 ${a1} 50 ${b1} 100 ${b1}"/>`; }).join('')}</svg>
-      <ul class="r" style="padding-top:${offR}rem">${R.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div></figure>`;
+        const a1 = y(L.indexOf(p.l), offL), b1 = y(R.indexOf(p.r), offR);
+        return `<path class="lk" data-l="${L.indexOf(p.l)}" data-r="${R.indexOf(p.r)}" data-where="${esc(p.where)}" data-say="${esc(p.say)}" d="M0 ${a1} C50 ${a1} 50 ${b1} 100 ${b1}"/>`; }).join('')}</svg>
+      <ul class="r" style="padding-top:${offR}rem">${R.map((x, i) => `<li tabindex="0" data-r="${i}" title="${esc(x)}">${esc(x)}</li>`).join('')}</ul></div>
+      <p class="lk-say" aria-live="polite" data-rest="${esc(rest)}">${esc(rest)}</p></figure>`;
+  };
+  const links = linkFig((a.references || []).map((p) => ({ l: p.from, r: p.to, say: p.what, where: p.where })),
+    'Where each reference landed', 'On the left, what you borrowed from; on the right, what of yours it shaped.', 'Point at a name to see what was taken from it.');
+  const gestures = linkFig((a.gestures || []).map((g) => ({ l: g.input, r: g.does, say: g.where ? `in ${g.where}` : '', where: g.where })),
+    'What each gesture does', 'On the left, what a hand or a key does; on the right, what that does in your apps. One input with many lines is doing many jobs.', 'Point at an input to see where it does that.');
+  const grows = linkFig(entries('edges').map((e) => ({ l: e.grows_from, r: e.title, say: e.next, where: e.where })),
+    'What each edge grows from', 'On the left, something you already do well; on the right, the edge it leads to.', 'Point at an edge to see what to try next.');
+
+  // How you prompt: each workflow you run, with an arrow back under the
+  // steps that repeat. An older analysis's one loop is one workflow.
+  const flows = (() => {
+    let W = (a.workflows || []).filter((w) => w && (w.steps || []).length);
+    if (!W.length && (a.loop || []).length) {
+      const rep = a.loop.map((st, i) => (st.repeats ? i + 1 : 0)).filter(Boolean);
+      W = [{ name: 'The loop you run', when: 'How most of your builds go, from first idea to shipped.', steps: a.loop, repeat: rep.length > 1 ? { from: rep[0], to: rep[rep.length - 1] } : null }];
+    }
+    return W.map((w) => {
+      const n = w.steps.length, from = +(w.repeat && w.repeat.from), to = +(w.repeat && w.repeat.to);
+      const r = from >= 1 && to > from && to <= n;
+      const note = r ? (w.repeat.note || `Steps ${WORD[from - 1] || from} to ${WORD[to - 1] || to} repeat until it looks right.`) : '';
+      return `<figure class="fig"><h3 class="k">${esc(w.name || 'A workflow you run')}</h3>${w.when ? `<figcaption><p>${esc(w.when)}</p></figcaption>` : ''}
+        <div class="wf-row" style="--n:${n}${r ? `;--from:${from};--to:${to}` : ''}"><ol class="steps">${w.steps.map((st, i) => `<li class="${r && i + 1 >= from && i + 1 <= to ? 'in' : ''}"><b>${esc(st.step)}</b><span>${esc(st.detail)}</span></li>`).join('')}</ol>${r ? '<span class="back" aria-hidden="true"></span>' : ''}</div>
+        ${note ? `<p class="loop-note">${esc(note)}</p>` : ''}</figure>`;
+    }).join('');
   })();
+
+  // One build as it went: real prompts in order, each with the move it makes.
+  const trace = (() => {
+    const t = a.trace || {}, turns = (t.turns || []).filter((x) => x && (x.quote || x.move));
+    if (turns.length < 2) return '';
+    return `<figure class="fig" data-where="${esc(t.where)}"><h3 class="k">One build as it went</h3><figcaption><p>${esc(t.what || 'Your prompts from one build, in order, with the move each one makes.')}${t.where || t.date ? ` <span class="r-d">${esc([t.where, t.date].filter(Boolean).join(' · '))}</span>` : ''}</p></figcaption>
+      <ol class="trace">${turns.map((x) => `<li><b>${esc(x.move)}</b><q>${esc(x.quote)}</q>${x.date ? `<small>${esc(x.date)}</small>` : ''}</li>`).join('')}</ol></figure>`;
+  })();
+
+  // Design language: a scale between two opposites, and where you sit on it.
+  const taste = (() => {
+    const xs = (a.taste || []).filter((x) => x && x.low && x.high && Number.isFinite(+x.at));
+    if (!xs.length) return '';
+    return `<figure class="fig"><h3 class="k">Where your taste sits</h3><figcaption><p>Each line runs between two opposites. The dot is where what you ask for sits, with the words of yours that put it there.</p></figcaption>
+      <div class="taste">${xs.map((x) => `<div class="ts" data-where="${esc(x.where)}"><span class="ts-l">${esc(x.low)}</span><span class="ts-t"><i style="left:${(Math.min(1, Math.max(0, +x.at)) * 100).toFixed(1)}%" title="${esc(x.low)} to ${esc(x.high)}"></i></span><span class="ts-h">${esc(x.high)}</span>${x.quote ? `<q>${esc(x.quote)}</q>` : ''}</div>`).join('')}</div></figure>`;
+  })();
+
+  const FIG = { kinds: timeline, features: featGrid, interaction: gestures, prompting: flows + trace, style: taste, metaphors: links, edges: grows };
 
   const refusals = (a.refusals || []).length ? `<div class="box"><h3 class="k">What you send back</h3><ul>${a.refusals.map((r) =>
     `<li data-where="${esc(r.where)}"><span>${esc(r.name)}</span><span class="r-q">${esc(r.quote)}</span><span class="r-d">${esc(r.date)}</span></li>`).join('')}</ul></div>` : '';
@@ -473,7 +664,6 @@
   main.innerHTML = `
     <h1>${esc(a.name ? `${a.name}'s envisioning fluency` : 'Envisioning fluency')}</h1>
     <p class="lede">What you can picture, ask for and get built, read from your own prompts to coding agents. Each level is a judgement from that evidence; change any one you disagree with.</p>
-    <nav class="show" aria-label="Show entries by level"><b>Show</b><span class="seg">${[['all', 'All'], ...LEVELS].map(([v, l]) => `<button type="button" data-show="${v}" aria-pressed="${v === 'all'}">${l}</button>`).join('')}</span></nav>
     ${readSec}
     <section id="portrait"><h2>In short</h2><p class="sec-d">The evaluation, and what it rests on.</p>
       <p class="verdict">${esc(a.verdict)}</p>
@@ -492,13 +682,129 @@
     </section>
     ${builtSec}
     ${SECTIONS.map(([k, title, desc, , f]) => `<section id="${k}" data-fam="${f}"><p class="eyebrow">${disc}${famName[f]}</p><h2>${title}</h2><p class="sec-d">${desc}</p>
-      ${k === 'prompting' ? loop : ''}${k === 'metaphors' ? links : ''}
+      ${FIG[k] || ''}${FIG[k] ? '<h3 class="k each">Each entry, with the line behind it</h3>' : ''}
       <div class="grid">${entries(k).map((e, i) => card(k, e, i)).join('')}</div>
       ${k === 'style' ? refusals : ''}</section>`).join('')}
     <section id="vocab"><h2>Vocabulary</h2><p class="sec-d">The interface words you use, counted across your prompts.</p>
       <div class="grid"><div class="it" data-fam="build"><h4>Parts you name</h4>${bars(s.parts)}</div><div class="it" data-fam="ask"><h4>Words for how it should feel</h4>${bars(s.feel)}</div><div class="it" data-fam="edge"><h4>Names you almost never use</h4><p>Each with a picture of what it names.</p>${bars(s.named, 'glyphs')}</div></div>
       ${names}</section>
     <p class="lede" style="margin-top:3rem;font-size:.78rem">Generated ${esc(a.generated)} from ${esc(Object.entries(s.sources || {}).map(([k, v]) => `${v} ${k}`).join(', '))} prompts, on this machine.</p>`;
+
+  // ---- Folding. Every section folds from its heading to its title and one
+  // line of what is inside. Which are folded is kept in this browser, with
+  // the levels, so a reload comes back the same.
+  const foldKey = `ef-fold:${a.name || ''}:${a.generated || ''}`;
+  const folded = (() => { try { return new Set(JSON.parse(localStorage.getItem(foldKey) || '[]')); } catch { return new Set(); } })();
+  const sums = {
+    read: () => { const off = P.filter((p) => out.projects.has(p.name)).length; return `${num(P.length)} ${P.length === 1 ? 'project' : 'projects'}, ${num(s.prompts)} prompts${off ? `; ${num(off)} kept out of what is sent` : ''}`; },
+    portrait: () => `The verdict, ${all.filter((x) => levelOf(x.k, x.i, x.e) === 'fluent').length} of ${all.length} entries fluent, and the charts it rests on`,
+    built: () => `${num(B.length)} ${B.length === 1 ? 'project' : 'projects'} read from their files`,
+    vocab: () => `${Object.keys(s.parts || {}).length} parts you name${(a.names || []).length ? `, ${a.names.length} places a name would help` : ''}`,
+  };
+  const sumOf = (id) => (sums[id] ? sums[id]() : `${entries(id).length} entries, ${tally(id)}`);
+  const paintSums = () => main.querySelectorAll('.sec-sum').forEach((p) => { p.textContent = sumOf(p.dataset.sum); });
+  main.querySelectorAll(':scope > section[id]').forEach((sec) => {
+    const h2 = sec.querySelector(':scope > h2');
+    if (!h2) return;
+    const body = document.createElement('div');
+    body.className = 'sec-b'; body.id = `${sec.id}-body`;
+    for (let n = h2.nextSibling; n;) { const next = n.nextSibling; body.appendChild(n); n = next; }
+    const sum = document.createElement('p');
+    sum.className = 'sec-sum'; sum.dataset.sum = sec.id;
+    sec.append(sum, body);
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'fold'; btn.dataset.fold = sec.id;
+    btn.setAttribute('aria-controls', body.id); btn.setAttribute('aria-expanded', 'true');
+    btn.append(...h2.childNodes);
+    btn.insertAdjacentHTML('beforeend', '<i class="chev" aria-hidden="true"></i>');
+    h2.append(btn);
+  });
+
+  // ---- The rail: every section, the level filter, and fold or open them all.
+  const rail = document.querySelector('.rail');
+  const NAV = [P.length && ['read', 'What this read'], ['portrait', 'In short'], B.length && ['built', 'What you built', 'build'],
+    ...SECTIONS.map(([k, , , short, f]) => [k, short, f]), ['vocab', 'Vocabulary']].filter(Boolean);
+  rail.innerHTML = `<div class="rail-top">
+      <button type="button" class="rail-btn" aria-expanded="false" aria-controls="rail-list">Sections<i class="chev" aria-hidden="true"></i></button>
+      <p class="rail-k">Show</p>
+      <span class="seg" role="group" aria-label="Show entries by level">${[['all', 'All'], ...LEVELS].map(([v, l]) => `<button type="button" data-show="${v}" aria-pressed="${v === 'all'}">${l}</button>`).join('')}</span></div>
+    <div class="rail-list" id="rail-list"><p class="rail-k">On this page</p>
+      ${NAV.map(([id, name, f]) => `<a href="#${id}" data-to="${id}"${f ? ` data-fam="${f}"` : ''}>${disc}${esc(name)}</a>`).join('')}
+      <button type="button" class="fold-all"></button></div>`;
+  rail.hidden = false;
+  const foldAll = rail.querySelector('.fold-all');
+  const setFold = (id, on, keep) => {
+    const sec = document.getElementById(id);
+    if (!sec) return;
+    sec.toggleAttribute('data-folded', on);
+    const body = sec.querySelector(':scope > .sec-b');
+    if (body) body.hidden = on;
+    const btn = sec.querySelector(':scope > h2 .fold');
+    if (btn) btn.setAttribute('aria-expanded', String(!on));
+    const link = rail.querySelector(`a[data-to="${id}"]`);
+    if (link) link.toggleAttribute('data-folded', on);
+    if (on) folded.add(id); else folded.delete(id);
+    if (!keep) localStorage.setItem(foldKey, JSON.stringify([...folded]));
+    foldAll.textContent = NAV.every(([x]) => folded.has(x)) ? 'Expand all' : 'Collapse all';
+  };
+  NAV.forEach(([id]) => setFold(id, folded.has(id), true));
+  paintSums();
+
+  const openList = (on) => { rail.toggleAttribute('data-open', on); rail.querySelector('.rail-btn').setAttribute('aria-expanded', String(on)); };
+  rail.addEventListener('click', (ev) => {
+    const t = ev.target.closest('a, button');
+    if (!t) return;
+    if (t.dataset.show) {
+      main.dataset.show = t.dataset.show;
+      t.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === t)));
+    } else if (t.classList.contains('rail-btn')) {
+      openList(!rail.hasAttribute('data-open'));
+    } else if (t === foldAll) {
+      const on = foldAll.textContent === 'Collapse all';
+      NAV.forEach(([id]) => setFold(id, on));
+    } else if (t.dataset.to) {
+      // Going to a folded section opens it.
+      if (folded.has(t.dataset.to)) setFold(t.dataset.to, false);
+      openList(false);
+    }
+  });
+  document.addEventListener('click', (ev) => { if (rail.hasAttribute('data-open') && !rail.contains(ev.target)) openList(false); });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && rail.hasAttribute('data-open')) { openList(false); rail.querySelector('.rail-btn').focus(); } });
+
+  // Which section is being read: where you are, never written down.
+  const seen = new Map();
+  const io = new IntersectionObserver((xs) => {
+    for (const x of xs) seen.set(x.target.id, x.isIntersecting ? x.boundingClientRect.top : Infinity);
+    let best = null, top = Infinity;
+    for (const [id, y] of seen) if (y < top) { top = y; best = id; }
+    rail.querySelectorAll('a[data-to]').forEach((l) => (l.dataset.to === best ? l.setAttribute('aria-current', 'true') : l.removeAttribute('aria-current')));
+  }, { rootMargin: '-10% 0px -70% 0px', threshold: [0, .1] });
+  NAV.forEach(([id]) => { const sec = document.getElementById(id); if (sec) io.observe(sec); });
+
+  // Pointing at a name in a two-column figure lights its lines.
+  const light = (li) => {
+    const fig = li.closest('.lfig'), side = li.dataset.l != null ? 'l' : 'r', other = side === 'l' ? 'r' : 'l';
+    const paths = [...fig.querySelectorAll(`.lk[data-${side}="${li.dataset[side]}"]`)];
+    fig.setAttribute('data-hot', '');
+    fig.querySelectorAll('.lk.on, li.on').forEach((x) => x.classList.remove('on'));
+    li.classList.add('on');
+    paths.forEach((p) => { p.classList.add('on'); const o = fig.querySelector(`li[data-${other}="${p.dataset[other]}"]`); if (o) o.classList.add('on'); });
+    const say = fig.querySelector('.lk-say');
+    const lines = paths.slice(0, 4).map((p) => {
+      const l = fig.querySelector(`li[data-l="${p.dataset.l}"]`).textContent, r = fig.querySelector(`li[data-r="${p.dataset.r}"]`).textContent;
+      return `<b>${esc(l)}</b> → <b>${esc(r)}</b>${p.dataset.say ? `: ${esc(p.dataset.say)}` : ''}`;
+    });
+    say.innerHTML = lines.join('<br>') || esc(say.dataset.rest);
+  };
+  const unlight = (fig) => {
+    fig.removeAttribute('data-hot');
+    fig.querySelectorAll('.lk.on, li.on').forEach((x) => x.classList.remove('on'));
+    const say = fig.querySelector('.lk-say'); say.textContent = say.dataset.rest;
+  };
+  main.addEventListener('pointerover', (ev) => { const li = ev.target.closest('.lfig li[tabindex]'); if (li) light(li); });
+  main.addEventListener('focusin', (ev) => { const li = ev.target.closest('.lfig li[tabindex]'); if (li) light(li); });
+  main.addEventListener('pointerout', (ev) => { const li = ev.target.closest('.lfig li[tabindex]'); if (li && !li.contains(ev.relatedTarget) && document.activeElement !== li) unlight(li.closest('.lfig')); });
+  main.addEventListener('focusout', (ev) => { const li = ev.target.closest('.lfig li[tabindex]'); if (li && !li.closest('.lfig').contains(ev.relatedTarget)) unlight(li.closest('.lfig')); });
 
   // Kept out of what is sent: each switch, each card and each line says so.
   const paintHolds = () => {
@@ -518,7 +824,8 @@
         if (mine) c.dataset.held = 'you'; else delete c.dataset.held;
       }
     });
-    main.querySelectorAll('li[data-where], .names div[data-where]').forEach((r) => r.toggleAttribute('data-held', out.projects.has(r.dataset.where)));
+    main.querySelectorAll('[data-where]:not(.it)').forEach((r) => r.toggleAttribute('data-held', out.projects.has(r.dataset.where)));
+    paintSums();
   };
   paintHolds();
 
@@ -535,12 +842,9 @@
       if (out.entries.has(k2)) out.entries.delete(k2); else out.entries.add(k2);
       saveOut(); paintHolds(); return;
     }
-    if (b.dataset.show) {
-      main.dataset.show = b.dataset.show;
-      b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-      return;
-    }
+    if (b.dataset.fold) { setFold(b.dataset.fold, !folded.has(b.dataset.fold)); return; }
     const { k, i, v } = b.dataset;
+    if (!k || !v) return;
     const cardEl = document.getElementById(`${k}-${i}`);
     cardEl.dataset.level = v;
     cardEl.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
@@ -549,6 +853,7 @@
     saved[`${k}:${i}`] = v;
     localStorage.setItem(key, JSON.stringify(saved));
     if (t) t.textContent = tally(k);
+    paintSums();
   });
 })();
 </script>
