@@ -1,0 +1,7 @@
+{
+  "name": "envisioning-fluency",
+  "version": "1.0.0",
+  "description": "Reads your own prompts to coding agents and writes you a one-page HTML report of the interfaces you can picture, ask for and get built.",
+  "author": { "name": "Bryan Min" },
+  "license": "MIT"
+}

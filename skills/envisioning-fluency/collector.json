@@ -1,0 +1,7 @@
+{
+  "about": "Where send.py posts a report when someone chooses to send theirs. It is an add-only link: it can add to this one page and cannot open it, so only its owner can read what was sent. Delete this file to make the skill local-only.",
+  "owner": "Bryan Min",
+  "page": "Everyone's envisioning fluency",
+  "share_link": "https://bryan.marbledrive.app/s/H9ebAZO-gZAyaW_jDdMw3F1kE3jrIXbCKaZuVE",
+  "list_id": "reports"
+}

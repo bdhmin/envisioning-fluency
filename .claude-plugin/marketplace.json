@@ -1,0 +1,16 @@
+{
+  "name": "envisioning-fluency",
+  "owner": {
+    "name": "Bryan Min"
+  },
+  "metadata": {
+    "description": "The envisioning-fluency skill: a report of the interfaces you can picture and prompt for."
+  },
+  "plugins": [
+    {
+      "name": "envisioning-fluency",
+      "source": "./",
+      "description": "Reads your own prompts to coding agents and writes you a one-page HTML report of the interfaces you can picture, ask for and get built."
+    }
+  ]
+}

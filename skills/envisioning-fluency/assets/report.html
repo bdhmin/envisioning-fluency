@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Envisioning fluency</title>
+<style>
+  /* One file, no network: the drive's paper-and-ink tokens, each colour a
+     light-dark() pair so the report follows the reader's scheme. */
+  :root {
+    color-scheme: light dark;
+    --ink: light-dark(#111111, #e8e6e1);
+    --muted: light-dark(#5a5a5a, #a3a7ab);
+    --faint: light-dark(#8a8a8a, #71767a);
+    --label: light-dark(#2b2b2b, #d6d4cf);
+    --line: light-dark(#e6e2d8, #272c30);
+    --paper: light-dark(#fafaf7, #16181a);
+    --paper-2: light-dark(#f3f1ea, #1e2124);
+    --paper-3: light-dark(#eceae1, #262a2e);
+    --card: light-dark(#ffffff, #1c1f22);
+    --accent: light-dark(#9bb6cf, #7fa8c9);
+    --accent-ink: light-dark(#738698, #9dc0dc);
+    --danger: light-dark(#b4533e, #e08a74);
+    --lv-fluent: var(--accent);
+    --lv-growing: color-mix(in srgb, var(--accent) 38%, var(--card));
+    --shadow-rest: 0 1px 2px light-dark(rgba(74,66,52,.06), rgba(0,0,0,.40)), 0 6px 16px light-dark(rgba(74,66,52,.08), rgba(0,0,0,.28));
+    --r: 12px; --r-sm: 8px; --pill: 999px;
+    --ease: cubic-bezier(.22, .61, .36, 1);
+    --ui: "Google Sans", Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --serif: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  html { container: page / inline-size; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--card); color: var(--ink); font: 14px/1.5 var(--ui); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
+  main { max-width: 64rem; margin: 0 auto; padding: 2.75rem 2.75rem 6rem; }
+  h1 { margin: 0 0 .35rem; font-size: 1.65rem; font-weight: 500; letter-spacing: -.015em; }
+  .lede { margin: 0 0 1.25rem; max-width: 42rem; color: var(--muted); font-size: 1.02rem; }
+  section { margin-top: 2.75rem; }
+  h2 { margin: 0 0 .15rem; font-size: 1.15rem; font-weight: 500; letter-spacing: -.015em; }
+  .sec-d { margin: 0 0 1rem; color: var(--muted); max-width: 42rem; }
+  h3.k { margin: 0 0 .25rem; font-size: 13px; font-weight: 600; color: var(--label); }
+  figure { margin: 0 0 1.5rem; }
+  figcaption p { margin: .1rem 0 .65rem; color: var(--muted); }
+
+  /* Segmented controls: words on a recessed track; the chosen one lifted. */
+  .seg { display: inline-flex; flex: none; padding: 2px; border-radius: var(--pill); background: var(--paper-2); }
+  .seg button { border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: .12rem .55rem; border-radius: var(--pill); font-size: 12px; transition: background .2s var(--ease), color .2s var(--ease); }
+  .seg button:hover { color: var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px light-dark(rgba(74,66,52,.14), rgba(0,0,0,.5)); }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .show { position: sticky; top: .65rem; z-index: 5; width: fit-content; display: flex; align-items: center; gap: .55rem; padding: .3rem .35rem .3rem .85rem; border: 1px solid var(--line); border-radius: var(--pill); background: light-dark(rgba(250,250,247,.78), rgba(22,24,26,.78)); backdrop-filter: blur(20px); box-shadow: var(--shadow-rest); }
+  .show .seg button { font-size: 13px; padding: .2rem .7rem; }
+  .show b { font-size: 13px; font-weight: 600; color: var(--label); }
+  @media (prefers-reduced-transparency: reduce) { .show { background: var(--paper); backdrop-filter: none; } }
+
+  .verdict { margin: 0 0 1.5rem; max-width: 44rem; font-family: var(--serif); font-size: 1.1rem; line-height: 1.6; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr)); gap: .75rem 1rem; margin: 0 0 1.5rem; }
+  .stats div { border-top: 1px solid var(--line); padding-top: .5rem; }
+  .stats dt { font-size: .78rem; color: var(--muted); }
+  .stats dd { margin: 0; font-size: 1.3rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .pull { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: .75rem; }
+  .pull div { background: var(--paper-2); border-radius: var(--r); padding: .85rem 1rem; }
+  .pull p { margin: 0; }
+
+  .map { display: grid; gap: .4rem; }
+  .map-row { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); align-items: center; gap: .75rem; font-size: 13px; }
+  .map-row a { color: var(--ink); text-decoration: none; }
+  .cells { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cells i { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--line); background: var(--paper); }
+  .cells i.fluent { background: var(--lv-fluent); border-color: transparent; }
+  .cells i.growing { background: var(--lv-growing); border-color: transparent; }
+  .legend { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; margin: .65rem 0 0; font-size: .78rem; color: var(--muted); }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; margin-left: .6rem; }
+  .legend i:first-child { margin-left: 0; }
+
+  .days { overflow: hidden; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; height: 8.5rem; }
+  .day { display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; }
+  .day .b { min-height: 2px; border-radius: 3px 3px 1px 1px; background: color-mix(in srgb, var(--accent) 45%, var(--card)); }
+  .day.pk .b { background: var(--accent); }
+  .day .n, .day .d { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .day .n { text-align: center; }
+  .day .d { height: 1.2rem; padding-top: .2rem; border-top: 1px solid var(--line); }
+
+  /* Cards: one hairline all the way round; the level is a word at the foot. */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr)); gap: .75rem; }
+  .it { display: flex; flex-direction: column; gap: .45rem; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: .85rem 1rem .9rem; }
+  .it[data-level="rare"] { background: var(--paper); }
+  .it h4 { margin: 0; font-size: 14px; font-weight: 500; }
+  .it p { margin: 0; color: var(--muted); }
+  .it .seg { align-self: flex-start; margin-top: auto; }
+  .glyph { padding: .55rem .5rem; border-radius: var(--r-sm); background: var(--paper); }
+  .it[data-level="rare"] .glyph { background: var(--card); }
+  .glyph svg { display: block; width: 100%; height: auto; max-height: 5.5rem; }
+  .q p { font-family: var(--serif); font-size: .98rem; line-height: 1.45; color: var(--ink) !important; }
+  .q p::before, .r-q::before, .names dt::before { content: "\201C"; }
+  .q p::after, .r-q::after, .names dt::after { content: "\201D"; }
+  .q cite { display: block; margin-top: .3rem; font-style: normal; font-size: .78rem; color: var(--muted); }
+  .next { padding-top: .55rem; border-top: 1px solid var(--line); color: var(--ink) !important; }
+  .next b { font-weight: 600; color: var(--label); margin-right: .25rem; }
+  main[data-show="fluent"] .it:not([data-level="fluent"]),
+  main[data-show="growing"] .it:not([data-level="growing"]),
+  main[data-show="rare"] .it:not([data-level="rare"]) { display: none; }
+
+  /* The drawings: greys from the ink, one accent, danger only to strike. */
+  svg * { vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+  .ln { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+  .lt { fill: none; stroke: var(--faint); stroke-width: 1; }
+  .fl { fill: var(--paper-3); stroke: none; }
+  .fc { fill: var(--card); stroke: var(--line); stroke-width: 1; }
+  .ac { fill: var(--accent); stroke: none; }
+  .as { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+  .dash { stroke-dasharray: 3 3; }
+  .bad { fill: none; stroke: var(--danger); stroke-width: 1.75; }
+
+  .box { margin-top: .75rem; border: 1px solid var(--line); border-radius: var(--r); padding: .85rem 1rem .4rem; }
+  .box ul, .box dl { list-style: none; margin: 0; padding: 0; }
+  .box li, .names dl > div { display: grid; gap: .25rem 1rem; padding: .45rem 0; border-top: 1px solid var(--line); align-items: baseline; }
+  .box li { grid-template-columns: 11rem minmax(0, 1fr) auto; }
+  .names dl > div { grid-template-columns: minmax(0, 24rem) 2rem minmax(0, 1fr); }
+  .names .arrow { color: var(--faint); }
+  .r-q, .names dt { font-family: var(--serif); color: var(--muted); }
+  .r-d { font-size: .78rem; color: var(--muted); }
+  .names dd { margin: 0; font-weight: 500; color: var(--accent-ink); }
+
+  .bars { list-style: none; margin: .35rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  .bars li { position: relative; isolation: isolate; display: flex; justify-content: space-between; padding: .12rem .45rem; font-size: 13px; }
+  .bars li::before { content: ""; position: absolute; inset: 0 auto 0 0; z-index: -1; width: var(--w); border-radius: 4px; background: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .bars.rare li::before { background: var(--paper-3); }
+  .bars .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .45rem; counter-reset: st; }
+  .steps li { display: flex; flex-direction: column; gap: .15rem; padding: .6rem .65rem; border: 1px solid var(--line); border-radius: var(--r-sm); counter-increment: st; }
+  .steps li::before { content: counter(st); font-size: .78rem; color: var(--muted); }
+  .steps li.in { background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
+  .steps b { font-weight: 500; font-size: 13px; }
+  .steps span { font-size: 12px; color: var(--muted); }
+  .loop-note { margin: .45rem 0 0; font-size: .78rem; color: var(--muted); }
+
+  .links { display: grid; grid-template-columns: minmax(0, 13rem) minmax(3rem, 1fr) minmax(0, 13rem); }
+  .links ul { list-style: none; margin: 0; padding: 0; }
+  .links li { height: 2rem; line-height: 2rem; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .links .l { text-align: right; padding-right: .6rem; font-weight: 500; }
+  .links .r li { padding-left: .6rem; color: var(--accent-ink); }
+  .links svg { width: 100%; }
+  .lk { fill: none; stroke: var(--faint); stroke-width: 1.25; }
+
+  /* Sending. A bar pinned to the foot of the window, so whoever reads the
+     report always has the choice in view; it floats, so it is glass, one
+     layer deep. Pressing it opens a sheet out of the bar that says exactly
+     what would go before anything does. Send is the page's one filled pill. */
+  .send { position: fixed; z-index: 20; left: 50%; bottom: calc(.9rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    width: min(36rem, calc(100vw - 1.5rem)); border: 1px solid var(--line); border-radius: 14px;
+    background: light-dark(rgba(250,250,247,.88), rgba(22,24,26,.88)); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    box-shadow: inset 0 1px 0 light-dark(rgba(255,255,255,.7), rgba(255,255,255,.06)), var(--shadow-rest); }
+  .send[hidden] { display: none; }
+  .send-row { display: flex; align-items: center; gap: .75rem; padding: .55rem .55rem .55rem 1rem; }
+  .send-row p { flex: 1; margin: 0; min-width: 0; font-size: 13px; color: var(--muted); }
+  .send-row p b { font-weight: 500; color: var(--ink); }
+  .pill { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: var(--pill); padding: .4rem .95rem; cursor: pointer; font-size: 13px; transition: background .11s var(--ease); }
+  .pill:hover { background: var(--paper-2); }
+  .pill:active { background: var(--paper-3); }
+  .pill.go { background: var(--ink); color: var(--paper); border-color: transparent; font-weight: 500; }
+  .pill.go:hover { background: color-mix(in srgb, var(--ink) 86%, var(--paper)); }
+  .pill.go:active { background: color-mix(in srgb, var(--ink) 74%, var(--paper)); }
+  .pill:disabled { opacity: .5; cursor: default; }
+  a.pill { color: var(--ink); text-decoration: none; }
+  .pill:focus-visible, .send summary:focus-visible, .send input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sheet { display: none; padding: .9rem 1rem .2rem; border-bottom: 1px solid var(--line); max-height: min(60dvh, 30rem); overflow: auto; }
+  .send[data-open] .sheet { display: block; animation: rise .2s var(--ease); }
+  @keyframes rise { from { opacity: 0; transform: translateY(3px); } }
+  .sheet h2 { font-size: 1rem; margin-bottom: .55rem; }
+  .sheet dl { margin: 0; }
+  .sheet dl > div { padding: .45rem 0; border-top: 1px solid var(--line); }
+  .sheet dt { font-size: 13px; font-weight: 600; color: var(--label); }
+  .sheet dd { margin: .1rem 0 0; color: var(--muted); }
+  .sheet label { display: flex; gap: .5rem; align-items: baseline; padding: .55rem 0 .7rem; border-top: 1px solid var(--line); cursor: pointer; }
+  .sheet label span { color: var(--muted); }
+  .sheet label b { font-weight: 500; color: var(--ink); }
+  .sheet code { font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--paper-2); border-radius: 4px; padding: .1rem .3rem; word-break: break-all; }
+  .send[data-state="sent"] .send-row p { color: var(--ink); }
+  .send-row p.err { color: var(--danger); }
+  @media (prefers-reduced-transparency: reduce) { .send { background: var(--paper); backdrop-filter: none; -webkit-backdrop-filter: none; } }
+  @media (pointer: coarse) { .pill { padding: .65rem 1.1rem; } .sheet input { width: 1.25rem; height: 1.25rem; } }
+  body.has-send main { padding-bottom: 9rem; }
+
+  @container page (max-width: 620px) {
+    main { padding: 1.5rem 1.1rem 6rem; }
+    .send-row { flex-wrap: wrap; }
+    .send-row p { flex-basis: 100%; }
+    .send-row .pill { flex: 1; }
+    .grid { grid-template-columns: 1fr; }
+    .map-row { grid-template-columns: 1fr; gap: .2rem; }
+    .box li { grid-template-columns: 1fr; }
+    .names dl > div { grid-template-columns: minmax(0, 1fr) 1rem minmax(0, .8fr); gap: .25rem .5rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main data-show="all"></main>
+<aside class="send" id="send" hidden aria-label="Send this report"></aside>
+<script type="application/json" id="data">/*__DATA__*/null</script>
+<script type="application/json" id="collector">/*__SEND__*/null</script>
+<script>
+// The report draws itself from the JSON above. The levels you change are
+// kept in this browser (localStorage), keyed by this report's name and date.
+(() => {
+  const data = JSON.parse(document.getElementById('data').textContent);
+  const main = document.querySelector('main');
+  if (!data) { main.textContent = 'This report has no data yet. Run render.py.'; return; }
+  const a = data.analysis, s = data.stats;
+  const key = `ef-levels:${a.name || ''}:${a.generated || ''}`;
+  const saved = JSON.parse(localStorage.getItem(key) || '{}');
+  const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const num = (n) => Number(n || 0).toLocaleString('en-US');
+  const LEVELS = [['fluent', 'Fluent'], ['growing', 'Growing'], ['rare', 'Rare']];
+  const SECTIONS = [
+    ['kinds', 'Kinds of UI you build', 'The genres your work falls into.', 'Kinds of UI'],
+    ['features', 'Features you generate', 'What you add to an app once it exists.', 'Features'],
+    ['interaction', 'Interaction techniques', 'How the things you build are handled.', 'Interaction'],
+    ['prompting', 'How you prompt', 'The moves you make when you ask an agent for an interface.', 'Prompting'],
+    ['style', 'Design language', 'What you ask a page to look and feel like, and what you send back.', 'Design language'],
+    ['metaphors', 'Metaphors and borrowed products', 'The apps, sites and objects you bring in as references. Here the level says how often you reach for one.', 'References'],
+    ['edges', 'Edges of the arsenal', 'What you rarely reach for, and what would widen the range.', 'Edges'],
+  ];
+  const entries = (k) => (a.sections && a.sections[k]) || [];
+  const levelOf = (k, i, e) => saved[`${k}:${i}`] || e.level || 'growing';
+
+  const seg = (k, i, level) => `<span class="seg" role="group" aria-label="Level">${LEVELS.map(([v, l]) =>
+    `<button type="button" data-k="${k}" data-i="${i}" data-v="${v}" aria-pressed="${v === level}">${l}</button>`).join('')}</span>`;
+  const card = (k, e, i) => {
+    const level = levelOf(k, i, e);
+    return `<article class="it" data-level="${level}" id="${k}-${i}">
+      ${e.sketch ? `<div class="glyph" aria-hidden="true"><svg viewBox="0 0 160 72">${e.sketch}</svg></div>` : ''}
+      <h4>${esc(e.title)}</h4><p>${esc(e.desc)}</p>
+      ${e.quote ? `<blockquote class="q" style="margin:0"><p>${esc(e.quote)}</p><cite>${esc([e.where, e.date].filter(Boolean).join(' · '))}</cite></blockquote>` : ''}
+      ${e.next ? `<p class="next"><b>Try next</b>${esc(e.next)}</p>` : ''}
+      ${seg(k, i, level)}</article>`;
+  };
+  const bars = (obj, cls = '') => {
+    const rows = Object.entries(obj || {}).sort((x, y) => y[1] - x[1]).slice(0, 18);
+    const max = Math.max(1, ...rows.map((r) => r[1]));
+    return `<ol class="bars ${cls}">${rows.map(([w, n]) => `<li style="--w:${n ? Math.max(2, Math.round(n / max * 100)) : 0}%"><span>${esc(w)}</span><span class="n">${n}</span></li>`).join('')}</ol>`;
+  };
+
+  // Prompts per day, with the four busiest named.
+  const days = Object.entries(s.per_day || {});
+  const maxDay = Math.max(1, ...days.map((d) => d[1]));
+  const peaks = new Set(days.slice().sort((x, y) => y[1] - x[1]).slice(0, 4).map((d) => d[0]));
+  const every = Math.max(1, Math.ceil(days.length / 8));
+  const dayChart = days.length ? `<figure><h3 class="k">When you prompted</h3><figcaption><p>Prompts per day, ${esc(s.first)} to ${esc(s.last)}.</p></figcaption>
+    <div class="days">${days.map(([d, n], i) => `<div class="day${peaks.has(d) ? ' pk' : ''}"><span class="n">${peaks.has(d) ? n : ''}</span><span class="b" style="height:${n / maxDay * 72}%"></span><span class="d">${i % every || i > days.length - 3 ? '' : d.slice(5)}</span></div>`).join('')}</div></figure>` : '';
+
+  const map = `<figure><h3 class="k">Map of the arsenal</h3><figcaption><p>One square per entry, shaded by its level.</p></figcaption><div class="map">${SECTIONS.map(([k, , , short]) =>
+    `<div class="map-row"><a href="#${k}">${short}</a><span class="cells">${entries(k).map((e, i) => `<i class="${levelOf(k, i, e)}" data-cell="${k}:${i}"></i>`).join('')}</span></div>`).join('')}</div>
+    <p class="legend"><i style="background:var(--lv-fluent)"></i>Fluent<i style="background:var(--lv-growing)"></i>Growing<i style="background:var(--paper);box-shadow:inset 0 0 0 1px var(--line)"></i>Rare</p></figure>`;
+
+  const loop = (a.loop || []).length ? `<figure><h3 class="k">The loop you run</h3><figcaption><p>How most of your builds go, from first idea to shipped.</p></figcaption>
+    <ol class="steps">${a.loop.map((st) => `<li class="${st.repeats ? 'in' : ''}"><b>${esc(st.step)}</b><span>${esc(st.detail)}</span></li>`).join('')}</ol>
+    ${a.loop.some((st) => st.repeats) ? '<p class="loop-note">The tinted steps repeat until it looks right.</p>' : ''}</figure>` : '';
+
+  const links = (() => {
+    const pairs = a.references || [];
+    if (!pairs.length) return '';
+    const L = [...new Set(pairs.map((p) => p.from))], R = [...new Set(pairs.map((p) => p.to))];
+    const rows = Math.max(L.length, R.length), offL = rows - L.length, offR = rows - R.length;
+    const y = (i, off) => 2 * i + 1 + off;
+    return `<figure><h3 class="k">Where each reference landed</h3><figcaption><p>On the left, what you borrowed from; on the right, what of yours it shaped.</p></figcaption>
+      <div class="links"><ul class="l" style="padding-top:${offL}rem">${L.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+      <svg viewBox="0 0 100 ${rows * 2}" preserveAspectRatio="none" style="height:${rows * 2}rem" aria-hidden="true">${pairs.map((p) => {
+        const a1 = y(L.indexOf(p.from), offL), b1 = y(R.indexOf(p.to), offR);
+        return `<path class="lk" d="M0 ${a1} C50 ${a1} 50 ${b1} 100 ${b1}"/>`; }).join('')}</svg>
+      <ul class="r" style="padding-top:${offR}rem">${R.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div></figure>`;
+  })();
+
+  const refusals = (a.refusals || []).length ? `<div class="box"><h3 class="k">What you send back</h3><ul>${a.refusals.map((r) =>
+    `<li><span>${esc(r.name)}</span><span class="r-q">${esc(r.quote)}</span><span class="r-d">${esc(r.date)}</span></li>`).join('')}</ul></div>` : '';
+  const names = (a.names || []).length ? `<div class="box names"><h3 class="k">Where a name would help</h3><dl>${a.names.map((n) =>
+    `<div><dt>${esc(n.said)}</dt><span class="arrow" aria-hidden="true">→</span><dd>${esc(n.name)}</dd></div>`).join('')}</dl></div>` : '';
+
+  main.innerHTML = `
+    <h1>${esc(a.name ? `${a.name}'s envisioning fluency` : 'Envisioning fluency')}</h1>
+    <p class="lede">What you can picture, ask for and get built, read from your own prompts to coding agents. Each level is a judgement from that evidence; change any one you disagree with.</p>
+    <nav class="show" aria-label="Show entries by level"><b>Show</b><span class="seg">${[['all', 'All'], ...LEVELS].map(([v, l]) => `<button type="button" data-show="${v}" aria-pressed="${v === 'all'}">${l}</button>`).join('')}</span></nav>
+    <section id="portrait"><h2>In short</h2><p class="sec-d">The evaluation, and what it rests on.</p>
+      <p class="verdict">${esc(a.verdict)}</p>
+      <dl class="stats">
+        <div><dt>Prompts read</dt><dd>${num(s.prompts)}</dd></div>
+        <div><dt>Days</dt><dd>${num(days.length)}</dd></div>
+        <div><dt>Median prompt</dt><dd>${num(s.median_words)} words</dd></div>
+        <div><dt>With a screenshot</dt><dd>${num(s.with_image)}</dd></div>
+        <div><dt>Refuse or remove</dt><dd>${num(s.refuse_or_remove)}</dd></div>
+        <div><dt>Ask for variations</dt><dd>${num(s.asks_for_variations)}</dd></div>
+      </dl>
+      ${map}${dayChart}
+      <div class="pull"><div><h3 class="k">Strongest</h3><p>${esc(a.strongest)}</p></div><div><h3 class="k">Most your own</h3><p>${esc(a.distinctive)}</p></div><div><h3 class="k">Thinnest</h3><p>${esc(a.thinnest)}</p></div></div>
+    </section>
+    ${SECTIONS.map(([k, title, desc]) => `<section id="${k}"><h2>${title}</h2><p class="sec-d">${desc}</p>
+      ${k === 'prompting' ? loop : ''}${k === 'metaphors' ? links : ''}
+      <div class="grid">${entries(k).map((e, i) => card(k, e, i)).join('')}</div>
+      ${k === 'style' ? refusals : ''}</section>`).join('')}
+    <section id="vocab"><h2>Vocabulary</h2><p class="sec-d">The interface words you use, counted across your prompts.</p>
+      <div class="grid"><div class="it"><h4>Parts you name</h4>${bars(s.parts)}</div><div class="it"><h4>Words for how it should feel</h4>${bars(s.feel)}</div><div class="it"><h4>Names you almost never use</h4>${bars(s.named, 'rare')}</div></div>
+      ${names}</section>
+    <p class="lede" style="margin-top:3rem;font-size:.78rem">Generated ${esc(a.generated)} from ${esc(Object.entries(s.sources || {}).map(([k, v]) => `${v} ${k}`).join(', '))} prompts, on this machine.</p>`;
+
+  // Choosing a level: the card, its square on the map, and what is kept.
+  main.addEventListener('click', (ev) => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    if (b.dataset.show) {
+      main.dataset.show = b.dataset.show;
+      b.parentElement.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      return;
+    }
+    const { k, i, v } = b.dataset;
+    const cardEl = document.getElementById(`${k}-${i}`);
+    cardEl.dataset.level = v;
+    cardEl.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    const cell = main.querySelector(`[data-cell="${k}:${i}"]`);
+    if (cell) cell.className = v;
+    saved[`${k}:${i}`] = v;
+    localStorage.setItem(key, JSON.stringify(saved));
+  });
+})();
+</script>
+<script>
+// The send bar. It shows only when the skill came with a collector.json, and
+// it sends only when the report was opened by `send.py --serve`, which is the
+// one place on this machine that can post it. Opened as a plain file, the bar
+// still says what would go and how to send it. The levels sent are the ones
+// left on the page.
+(() => {
+  const bar = document.getElementById('send');
+  const data = JSON.parse(document.getElementById('data').textContent || 'null');
+  const conf = JSON.parse(document.getElementById('collector').textContent || 'null');
+  if (!bar || !data || !conf) return;
+  const a = data.analysis;
+  const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const owner = esc(conf.owner || 'Whoever shared this skill');
+  const page = esc(conf.page || 'their page');
+  const id = `${a.name || ''}:${a.generated || ''}`;
+  const sentKey = `ef-sent:${id}`;
+  const served = location.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(location.hostname) && !!conf.token;
+
+  bar.innerHTML = `
+    <div class="sheet" id="send-sheet" role="region" aria-labelledby="send-h">
+      <h2 id="send-h" tabindex="-1">Before you send</h2>
+      <dl>
+        <div><dt>What goes</dt><dd>The verdict, the three findings, every entry with the level you left it at and the line of yours behind it, and the counts. ${owner}'s drive makes it a page of its own.</dd></div>
+        <div><dt>What never goes</dt><dd>Your prompt history. It stays on this machine.</dd></div>
+        <div><dt>Who can read it</dt><dd>Only ${owner}. The link can add your report to ${page} but can't open it, so nobody else who has this skill can read it.</dd></div>
+        ${served ? '' : `<div><dt>Sending from this copy</dt><dd>This copy was opened as a file, so it cannot send by itself. Ask your agent to “send my envisioning fluency report”, or run <code>python3 scripts/send.py --work ef-work --serve</code> and press Send in the page it opens.</dd></div>`}
+      </dl>
+      ${served ? `<label><input type="checkbox" id="send-summary"><span><b>Send only the summary.</b> Your name, the date, the verdict, the three findings, a square per entry, what you are fluent in and your edges, without the quotes.</span></label>` : ''}
+    </div>
+    <div class="send-row"><p id="send-say" role="status"></p><span id="send-acts" style="display:contents"></span></div>`;
+  const say = bar.querySelector('#send-say');
+  const acts = bar.querySelector('#send-acts');
+
+  const draw = (state, note) => {
+    bar.dataset.state = state;
+    say.classList.toggle('err', state === 'error');
+    if (state === 'open' || state === 'sending' || state === 'error') bar.setAttribute('data-open', ''); else bar.removeAttribute('data-open');
+    if (state === 'sent') {
+      const when = note || '';
+      say.innerHTML = `Sent to <b>${owner}</b>${when ? ` on ${esc(when)}` : ''}.`;
+      acts.innerHTML = conf.link ? `<a class="pill" href="${esc(conf.link)}" target="_blank" rel="noopener">See their page</a>` : '';
+    } else if (state === 'closed') {
+      say.innerHTML = `<b>${owner}</b> collects these reports. Nothing leaves this machine unless you send it.`;
+      acts.innerHTML = `<button type="button" class="pill go" data-do="open" aria-expanded="false" aria-controls="send-sheet">Review and send</button>`;
+    } else {
+      say.innerHTML = state === 'sending' ? 'Sending…' : state === 'error' ? esc(note) : `Read it through first. You can change any level above before you send.`;
+      acts.innerHTML = `<button type="button" class="pill" data-do="close" aria-expanded="true" aria-controls="send-sheet">Not now</button>`
+        + (served ? `<button type="button" class="pill go" data-do="send"${state === 'sending' ? ' disabled' : ''}>Send to ${owner}</button>` : '');
+    }
+  };
+
+  const send = async () => {
+    draw('sending');
+    let levels = {};
+    try { levels = JSON.parse(localStorage.getItem(`ef-levels:${id}`) || '{}'); } catch {}
+    try {
+      const res = await fetch('/send', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-EF-Token': conf.token },
+        body: JSON.stringify({ summary_only: !!bar.querySelector('#send-summary')?.checked, levels }) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok || !out.ok) throw new Error(out.error || `The page did not answer (${res.status}).`);
+      const when = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+      localStorage.setItem(sentKey, when);
+      draw('sent', when);
+    } catch (err) {
+      draw('error', `Not sent. ${err.message.includes('fetch') ? 'The send window has closed; run send.py --serve again.' : err.message}`);
+    }
+  };
+
+  bar.addEventListener('click', (ev) => {
+    const b = ev.target.closest('button[data-do]');
+    if (!b) return;
+    if (b.dataset.do === 'open') { draw('open'); bar.querySelector('#send-h').focus(); }
+    else if (b.dataset.do === 'close') { draw('closed'); bar.querySelector('[data-do="open"]').focus(); }
+    else if (b.dataset.do === 'send') send();
+  });
+  addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && bar.dataset.state === 'open') { draw('closed'); bar.querySelector('[data-do="open"]').focus(); }
+  });
+
+  const sent = localStorage.getItem(sentKey);
+  draw(sent ? 'sent' : 'closed', sent || '');
+  bar.hidden = false;
+  document.body.classList.add('has-send');
+})();
+</script>
+</body>
+</html>
